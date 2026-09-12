@@ -26,6 +26,8 @@ export class User {
   phone: string;
   @Column({ nullable: true })
   profile_image: string;
+  @Column({default:1})
+  token_version:number
   @CreateDateColumn()
   created_at: Date;
   @UpdateDateColumn()

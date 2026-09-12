@@ -4,6 +4,7 @@ import { OtpService } from './otp.service';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
 export class AuthService {
@@ -29,15 +30,14 @@ export class AuthService {
     } else {
       user = await this.usersService.findByPhone(phone);
     }
-
+    const token_version = await this.usersService.incrementTokenVersion(user.id)
     // create token for user
-    const token = this.jwtService.sign(
-      { sub: user.id, phone: user.phone },
-      {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: Number(this.configService.get('JWT_ACCESS_EXPIRES_IN')),
-      },
-    );
+    const payload: JwtPayload = {
+      sub: user.id,
+      phone: user.phone,
+      token_version,
+    };
+    const token = this.jwtService.sign(payload);
     return {
       message:
         otp.purpose === OtpPurpose.REGISTER
