@@ -9,6 +9,9 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
   });
+  app.enableCors({
+    origin: '*', //Test and dev mode
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({

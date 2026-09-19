@@ -45,6 +45,7 @@ export class AuthService {
           : 'کاربر با موفقیت لاگین شد.',
       user,
       token,
+      purpose: otp.purpose,
     };
   }
 }
