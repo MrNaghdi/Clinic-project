@@ -8,6 +8,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
 import { Otp } from './auth/entities/otp.entity';
 import { JwtModule } from '@nestjs/jwt';
+import { ServicesModule } from './services/services.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import { Service } from './services/entities/service.entity';
+import KeyvRedis, { Keyv } from '@keyv/redis';
 
 @Module({
   imports: [
@@ -24,7 +28,7 @@ import { JwtModule } from '@nestjs/jwt';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp],
+        entities: [User, Otp, Service],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -40,8 +44,18 @@ import { JwtModule } from '@nestjs/jwt';
         },
       }),
     }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: async () => {
+        const store = new KeyvRedis('redis://localhost:6379');
+        return {
+          stores: [new Keyv({ store })],
+        };
+      },
+    }),
     AuthModule,
     UsersModule,
+    ServicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
