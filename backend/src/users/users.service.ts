@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+  ) { }
   // find user by id
   async findById(id: number): Promise<User | null> {
     return this.userRepository.findOne({
@@ -60,5 +60,12 @@ export class UsersService {
     }
     user.profile_image = imagePath;
     return this.userRepository.save(user);
+  }
+  async updateRole(userId: number, role: UserRole): Promise<User> {
+    const result = await this.userRepository.update(userId, { role });
+    if (result.affected === 0) {
+      throw new NotFoundException('کاربر پیدا نشد.');
+    }
+    return this.findById(userId) as Promise<User>;
   }
 }

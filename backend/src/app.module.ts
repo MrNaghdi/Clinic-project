@@ -12,6 +12,9 @@ import { ServicesModule } from './services/services.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { Service } from './services/entities/service.entity';
 import KeyvRedis, { Keyv } from '@keyv/redis';
+import { SpecialistModule } from './specialist/specialist.module';
+import { Specialist } from './specialist/entities/specialist.entity';
+import { WorkingHours } from './specialist/entities/workingHours.entity';
 
 @Module({
   imports: [
@@ -28,7 +31,7 @@ import KeyvRedis, { Keyv } from '@keyv/redis';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp, Service],
+        entities: [User, Otp, Service, Specialist, WorkingHours],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -56,6 +59,7 @@ import KeyvRedis, { Keyv } from '@keyv/redis';
     AuthModule,
     UsersModule,
     ServicesModule,
+    SpecialistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
