@@ -7,7 +7,7 @@ import {
     JoinColumn,
     JoinTable,
     ManyToMany,
-    ManyToOne,
+    OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
@@ -21,7 +21,7 @@ export enum SpecialistStatus {
 export class Specialist {
     @PrimaryGeneratedColumn()
     id: number;
-    @ManyToOne(() => User)
+    @OneToOne(() => User)
     @JoinColumn({ name: 'user_id' })
     user: User;
     @Column()

@@ -42,6 +42,10 @@ export class SpecialistService {
     console.log('💾 [cache MISS] specialist:all → DB');
     const specialists = await this.specialistRepository.find({
       where: { is_active: true, status: SpecialistStatus.Approved },
+      relations: {
+        user: true,
+        services: true,
+      }
     });
 
     await this.cache.set(KEY_LIST, specialists, TTL_LIST);
@@ -56,6 +60,10 @@ export class SpecialistService {
 
     const specialist = await this.specialistRepository.findOne({
       where: { id, is_active: true, status: SpecialistStatus.Approved },
+      relations: {
+        user: true,
+        services: true,
+      }
     });
     if (!specialist) {
       throw new NotFoundException('متخصص مورد نظر پیدا نشد.');
