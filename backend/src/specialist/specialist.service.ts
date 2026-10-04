@@ -45,6 +45,7 @@ export class SpecialistService {
       relations: {
         user: true,
         services: true,
+        working_hours: true,
       }
     });
 
@@ -63,6 +64,7 @@ export class SpecialistService {
       relations: {
         user: true,
         services: true,
+        working_hours: true,
       }
     });
     if (!specialist) {

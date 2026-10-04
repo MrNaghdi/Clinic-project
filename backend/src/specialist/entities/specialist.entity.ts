@@ -7,10 +7,12 @@ import {
     JoinColumn,
     JoinTable,
     ManyToMany,
+    OneToMany,
     OneToOne,
     PrimaryGeneratedColumn,
     UpdateDateColumn,
 } from 'typeorm';
+import { WorkingHours } from './workingHours.entity';
 
 export enum SpecialistStatus {
     Pending = 'pending',
@@ -30,11 +32,13 @@ export class Specialist {
     status: SpecialistStatus;
     @Column({ default: true })
     is_active: boolean;
+    @OneToMany(() => WorkingHours, (wh) => wh.specialist)
+    working_hours: WorkingHours[];
+    @ManyToMany(() => Service)
+    @JoinTable()
+    services: Service[];
     @CreateDateColumn()
     created_at: Date;
     @UpdateDateColumn()
     updated_at: Date;
-    @ManyToMany(() => Service)
-    @JoinTable()
-    services: Service[];
 }
