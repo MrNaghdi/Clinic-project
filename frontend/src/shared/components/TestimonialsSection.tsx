@@ -1,113 +1,100 @@
+import { motion } from "framer-motion";
+import { Star, Quote } from "lucide-react";
 import user1 from "../../assets/image/user1.png";
 import user2 from "../../assets/image/user2.png";
-import { useDarkMode } from "../../shared/hook/useDarkMode";
-import { homeTheme } from "../theme";
+import { useDarkMode } from "../hook/useDarkMode";
+import { Container } from "./ui/Container";
+import { SectionTitle } from "./ui/SectionTitle";
+import { RevealOnScroll } from "./animations/RevealOnScroll";
 
 const testimonials = [
   {
     image: user2,
     name: "مبینا رضایی",
+    role: "مشتری",
     rating: 5,
     text: "خدمات این کلینیک عالی بود. محیط آرام و برخورد کارکنان بسیار خوب بود. حتماً دوباره مراجعه می‌کنم.",
   },
   {
     image: user1,
     name: "علی محمدی",
-    rating: 5,
-    text: "بسیار حرفه‌ای خوب بود. نتیجه لیزر موهای زائد کاملاً راضی‌کننده بود. واقعاً از تیم حرفه‌ای‌شان ممنونم.",
-  },
-  {
-    image: user1,
-    name: "علی محمدی",
-    rating: 5,
-    text: "بسیار حرفه‌ای خوب بود. نتیجه لیزر موهای زائد کاملاً راضی‌کننده بود. واقعاً از تیم حرفه‌ای‌شان ممنونم.",
-  },
-  {
-    image: user1,
-    name: "علی محمدی",
+    role: "مشتری",
     rating: 5,
     text: "بسیار حرفه‌ای خوب بود. نتیجه لیزر موهای زائد کاملاً راضی‌کننده بود. واقعاً از تیم حرفه‌ای‌شان ممنونم.",
   },
   {
     image: user2,
     name: "نرگس کریمی",
-    rating: 5,
-    text: "من برای تزریق ژل زیر نظر تیم حرفه‌ای مراجعه کردم و کاملاً راضی بودم. پیشنهاد می‌کنم حتماً امتحان کنید.",
-  },
-  {
-    image: user2,
-    name: "نرگس کریمی",
+    role: "مشتری",
     rating: 5,
     text: "من برای تزریق ژل زیر نظر تیم حرفه‌ای مراجعه کردم و کاملاً راضی بودم. پیشنهاد می‌کنم حتماً امتحان کنید.",
   },
 ];
 
-const StarIcon = ({ filled }: { filled: boolean }) => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill={filled ? "currentColor" : "none"}
-    stroke="currentColor"
-    strokeWidth="1.5"
-  >
-    <path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7-5.4-4.7 7.1-.6L12 2z" />
-  </svg>
-);
-
 const TestimonialsSection = () => {
   const { darkMode } = useDarkMode();
-  const t = homeTheme(darkMode);
 
   return (
-    <div
+    <section
       dir="rtl"
-      className={`w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-28 py-10 sm:py-12 lg:py-16 transition-colors ${t.pageBg}`}
+      className={`relative py-20 lg:py-28 overflow-hidden ${darkMode ? "bg-ink-light" : "bg-gray-50"}`}
     >
-      <div className="text-center sm:text-right mb-8 sm:mb-10">
-        <h2 className={`text-xl sm:text-2xl text-right font-bold mb-2 ${t.titleText}`}>
-          نظرات مراجعه‌کنندگان
-        </h2>
-        <p className={`text-sm sm:text-base text-right ${t.mutedText}`}>
-          رضایت شما، بزرگ‌ترین افتخار ماست
-        </p>
-      </div>
+      <div
+        className={`absolute top-1/2 left-0 w-[600px] h-[600px] blur-[120px] rounded-full pointer-events-none ${
+          darkMode ? "bg-purple-500/10" : "bg-purple-200/30"
+        }`}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
-        {testimonials.map((item, index) => (
-          <div
-            key={index}
-            className={`rounded-2xl border p-5 sm:p-6 transition-colors ${
-              darkMode
-                ? "bg-gray-800 border-gray-700 shadow-lg shadow-black/20"
-                : "bg-gray-50 border-gray-100 shadow-lg"
-            }`}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-11 h-11 sm:w-12 sm:h-12 rounded-full object-cover shrink-0"
-              />
-              <div className="min-w-0">
-                <h3 className={`font-bold text-sm truncate ${t.titleText}`}>
-                  {item.name}
-                </h3>
-                <div className="flex items-center gap-0.5 text-yellow-400 mt-1">
+      <Container className="relative">
+        <SectionTitle
+          eyebrow="نظرات"
+          title="نظرات مراجعه‌کنندگان"
+          description="رضایت شما، بزرگ‌ترین افتخار ماست"
+          align="center"
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {testimonials.map((item, index) => (
+            <RevealOnScroll key={index} delay={index * 0.1}>
+              <motion.div
+                whileHover={{ y: -8 }}
+                className="group relative h-full rounded-3xl p-8 bg-white dark:bg-ink border border-gray-200 dark:border-white/5 hover:border-transparent transition-all duration-500 hover:shadow-2xl"
+              >
+                <div className="absolute top-6 left-6 text-brand-500/10 dark:text-brand-500/20">
+                  <Quote size={60} fill="currentColor" />
+                </div>
+
+                <div className="relative flex items-center gap-1 mb-4">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <StarIcon key={i} filled={i < item.rating} />
+                    <Star key={i} size={16} className="text-yellow-400" fill="#facc15" />
                   ))}
                 </div>
-              </div>
-            </div>
 
-            <p className={`text-xs sm:text-sm leading-6 sm:leading-7 ${t.mutedText}`}>
-              {item.text}
-            </p>
-          </div>
-        ))}
-      </div>
-    </div>
+                <p className="relative text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-7 mb-6 min-h-[100px]">
+                  "{item.text}"
+                </p>
+
+                <div className="relative flex items-center gap-3 pt-6 border-t border-gray-100 dark:border-white/5">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-brand-100 dark:border-brand-500/30"
+                  />
+                  <div>
+                    <p className="font-bold text-sm text-gray-900 dark:text-white">
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {item.role}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </RevealOnScroll>
+          ))}
+        </div>
+      </Container>
+    </section>
   );
 };
 

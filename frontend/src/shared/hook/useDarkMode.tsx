@@ -9,6 +9,13 @@ export function useDarkMode() {
 
   useEffect(() => {
     localStorage.setItem("darkMode", String(darkMode));
+
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+
     window.dispatchEvent(new Event("darkModeChange"));
   }, [darkMode]);
 

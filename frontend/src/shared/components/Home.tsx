@@ -1,25 +1,21 @@
-import { useDarkMode } from "../hook/useDarkMode";
-import HeaderHome from "../components/HeaderHome";
-import MainHome from "../components/MainHome";
-import FooterHome from "./FooterHome";
+import { Hero } from "./sections/Hero";
+import { FeaturesSection } from "./sections/FeaturesSection";
+import ServicesSection from "./ServicesSection";
+import TopDoctors from "./TopDoctors";
+import WhyUsSection from "./WhyUsSection";
+import TestimonialsSection from "./TestimonialsSection";
+import { CTASection } from "./sections/CTASection";
 
-const HomePage = () => {
-  const { darkMode } = useDarkMode();
-
+export default function Home() {
   return (
-    <div
-      className={`w-full min-h-screen transition-colors ${
-        darkMode ? "bg-gray-900" : "bg-white"
-      }`}
-      style={{ direction: "rtl" }}
-    >
-      <div className="w-full max-w-[1450px] mx-auto p-4">
-        <HeaderHome />
-        <MainHome />
-        <FooterHome/>
-      </div>
-    </div>
+    <main className="overflow-x-hidden">
+      <Hero />
+      <FeaturesSection />
+      <ServicesSection />
+      <TopDoctors />
+      <WhyUsSection />
+      <TestimonialsSection />
+      <CTASection />
+    </main>
   );
-};
-
-export default HomePage;
+}

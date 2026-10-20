@@ -1,99 +1,125 @@
+import { motion } from "framer-motion";
+import { Users, Sparkles, Shield, Headphones } from "lucide-react";
 import clinicImage from "../../assets/image/clinic.jpg";
-import { useDarkMode } from '../../shared/hook/useDarkMode';
-import { homeTheme } from "../theme";
+import { useDarkMode } from "../hook/useDarkMode";
+import { Container } from "./ui/Container";
+import { SectionTitle } from "./ui/SectionTitle";
+import { RevealOnScroll } from "./animations/RevealOnScroll";
 
 const whyUs = [
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
-      </svg>
-    ),
-    title: "متخصصان مجرب و حرفه‌ای",
+    icon: Users,
+    title: "متخصصان مجرب",
     description: "پزشکان و متخصصان با سال‌ها تجربه در کنار شما",
+    color: "from-blue-500 to-cyan-500",
   },
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <circle cx="6" cy="12" r="2" />
-        <circle cx="18" cy="6" r="2" />
-        <circle cx="18" cy="18" r="2" />
-        <path d="M8 12h8M8 12l8-6M8 12l8 6" />
-      </svg>
-    ),
+    icon: Sparkles,
     title: "تجهیزات مدرن",
     description: "جدیدترین دستگاه‌های روز دنیا با استاندارد بین‌المللی",
+    color: "from-purple-500 to-pink-500",
   },
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M12 3v6M12 3a4 4 0 0 1 4 4M12 3a4 4 0 0 0-4 4" />
-        <path d="M6 21c0-4 2.5-7 6-7s6 3 6 7" />
-      </svg>
-    ),
-    title: "محیط آرام و بهداشتی",
+    icon: Shield,
+    title: "محیط بهداشتی",
     description: "کلینیکی تمیز و آرامش‌بخش برای بهترین تجربه شما",
+    color: "from-green-500 to-emerald-500",
   },
   {
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-      </svg>
-    ),
+    icon: Headphones,
     title: "پشتیبانی آنلاین",
     description: "مشاوره رایگان قبل از نوبت و پاسخگویی سریع",
+    color: "from-orange-500 to-red-500",
   },
 ];
 
 const WhyUsSection = () => {
   const { darkMode } = useDarkMode();
-  const t = homeTheme(darkMode);
 
   return (
-    <div
+    <section
       dir="rtl"
-      className={`w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-28 py-10 sm:py-12 lg:py-16 transition-colors ${
-        darkMode ? "bg-gray-900" : "bg-blue-50"
-      }`}
+      className={`relative py-20 lg:py-28 overflow-hidden ${darkMode ? "bg-ink" : "bg-white"}`}
     >
-      <div className="flex flex-col lg:flex-row lg:items-center gap-8 sm:gap-10 lg:gap-16">
-        <div className="w-full lg:w-1/2 order-1 lg:order-1">
-          <h2 className={`text-xl sm:text-2xl font-bold mb-4 sm:mb-6 lg:mb-8 ${t.titleText}`}>
-            چرا کلینیک ما؟
-          </h2>
-          <p className={`text-sm sm:text-base mb-6 sm:mb-8 leading-7 ${t.mutedText}`}>
-            ما به زیبایی شما اهمیت می‌دهیم
-          </p>
+      <div
+        className={`absolute top-1/2 right-0 w-[600px] h-[600px] blur-[120px] rounded-full pointer-events-none ${
+          darkMode ? "bg-accent-500/10" : "bg-accent-200/30"
+        }`}
+      />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {whyUs.map((item, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-colors ${t.iconCircle}`}>
-                  {item.icon}
-                </div>
-                <div className="min-w-0">
-                  <h3 className={`font-bold text-sm mb-1 ${t.titleText}`}>
-                    {item.title}
-                  </h3>
-                  <p className={`text-xs leading-5 ${t.mutedText}`}>
-                    {item.description}
-                  </p>
-                </div>
+      <Container className="relative">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Right side — Image (RTL) */}
+          <RevealOnScroll direction="right">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-accent-500 rounded-3xl rotate-3 opacity-30 blur-2xl" />
+
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl">
+                <img
+                  src={clinicImage}
+                  alt="clinic"
+                  className="w-full h-[400px] lg:h-[500px] object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
               </div>
-            ))}
+
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="absolute -bottom-6 -left-6 bg-white dark:bg-ink-light rounded-2xl p-5 shadow-2xl border border-gray-200 dark:border-white/10"
+              >
+                <p className="text-3xl font-black text-brand-500">۱۰+</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">سال تجربه</p>
+              </motion.div>
+            </div>
+          </RevealOnScroll>
+
+          {/* Left side — Content */}
+          <div>
+            <SectionTitle
+              eyebrow="چرا ما؟"
+              title="چرا کلینیک SkinCare؟"
+              description="ما به زیبایی شما اهمیت می‌دهیم و بهترین خدمات را ارائه می‌دهیم"
+              align="right"
+              className="mb-10"
+            />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {whyUs.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <RevealOnScroll key={item.title} delay={index * 0.1}>
+                    <motion.div
+                      whileHover={{ y: -6, scale: 1.02 }}
+                      className="group relative p-5 rounded-2xl bg-white dark:bg-ink-light border border-gray-200 dark:border-white/5 hover:border-transparent transition-all overflow-hidden hover:shadow-xl"
+                    >
+                      <div
+                        className={`absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gradient-to-br ${item.color} opacity-10 group-hover:opacity-30 blur-2xl transition-opacity duration-500`}
+                      />
+
+                      <div className="relative">
+                        <div
+                          className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} text-white flex items-center justify-center mb-4 shadow-lg`}
+                        >
+                          <Icon size={20} />
+                        </div>
+                        <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-1.5">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-5">
+                          {item.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </RevealOnScroll>
+                );
+              })}
+            </div>
           </div>
         </div>
-
-        <div className="w-full lg:w-1/2 order-2 lg:order-2">
-          <img
-            src={clinicImage}
-            alt="clinic"
-            className="w-full h-56 sm:h-72 md:h-80 lg:h-80 object-cover rounded-2xl"
-          />
-        </div>
-      </div>
-    </div>
+      </Container>
+    </section>
   );
 };
 

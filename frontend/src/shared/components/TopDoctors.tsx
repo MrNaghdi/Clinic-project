@@ -1,7 +1,11 @@
 import { useRef } from "react";
-import doctor1 from "../../assets/image/doctor1.jpg";
-import { useDarkMode } from "../../shared/hook/useDarkMode";
-import { homeTheme } from "../theme";
+import { Link } from "react-router-dom";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { ArrowLeft, ArrowRight, Star, CheckCircle2 } from "lucide-react";
+import doctor1 from "../../assets/image/doctor1.png";
+import { useDarkMode } from "../hook/useDarkMode";
+import { Container } from "./ui/Container";
+import { SectionTitle } from "./ui/SectionTitle";
 
 const doctors = [
   { image: doctor1, name: "دکتر سارا احمدی", specialty: "متخصص پوست و زیبایی", rating: 4.9 },
@@ -9,104 +13,138 @@ const doctors = [
   { image: doctor1, name: "دکتر مریم حسینی", specialty: "متخصص لیزر و زیبایی", rating: 4.7 },
   { image: doctor1, name: "دکتر محمد کریمی", specialty: "متخصص جراحی زیبایی", rating: 4.9 },
   { image: doctor1, name: "دکتر محمد کریمی", specialty: "متخصص جراحی زیبایی", rating: 4.9 },
-  { image: doctor1, name: "دکتر محمد کریمی", specialty: "متخصص جراحی زیبایی", rating: 4.9 },
 ];
 
-const StarIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-    <path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.9L5.7 21l1.7-7-5.4-4.7 7.1-.6L12 2z" />
-  </svg>
-);
+function DoctorCard({ doctor, index }: { doctor: typeof doctors[0]; index: number }) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [12, -12]), {
+    stiffness: 300,
+    damping: 30,
+  });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-12, 12]), {
+    stiffness: 300,
+    damping: 30,
+  });
+
+  return (
+    <motion.div
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d", perspective: 1000 }}
+      onMouseMove={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        x.set((e.clientX - rect.left) / rect.width - 0.5);
+        y.set((e.clientY - rect.top) / rect.height - 0.5);
+      }}
+      onMouseLeave={() => {
+        x.set(0);
+        y.set(0);
+      }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.08, duration: 0.5 }}
+      className="w-[280px] shrink-0"
+    >
+      <Link
+        to="/specialists"
+        className="group block relative rounded-3xl overflow-hidden bg-white dark:bg-ink-light border border-gray-200 dark:border-white/5 transition-shadow duration-500 hover:shadow-2xl"
+      >
+        {/* Photo */}
+        <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 dark:bg-white/5">
+          <img
+            src={doctor.image}
+            alt={doctor.name}
+            className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
+          />
+
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+          {/* Verified */}
+          <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center shadow-lg">
+            <CheckCircle2 size={18} className="text-brand-500" fill="currentColor" />
+          </div>
+
+          {/* Rating */}
+          <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md flex items-center gap-1">
+            <Star size={12} className="text-yellow-400" fill="#facc15" />
+            <span className="text-xs font-bold text-white">{doctor.rating}</span>
+          </div>
+
+          {/* Name */}
+          <div style={{ transform: "translateZ(30px)" }} className="absolute bottom-0 right-0 left-0 p-5">
+            <h3 className="text-lg font-black text-white mb-1">{doctor.name}</h3>
+            <p className="text-xs text-white/80">{doctor.specialty}</p>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="p-4">
+          <div className="flex items-center justify-between text-sm font-semibold text-gray-900 dark:text-white group-hover:text-brand-500 transition-colors">
+            مشاهده پروفایل
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
 
 const TopDoctors = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { darkMode } = useDarkMode();
-  const t = homeTheme(darkMode);
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = 260;
-    scrollRef.current.scrollBy({
-      left: direction === "right" ? amount : -amount,
+  const scroll = (dir: "left" | "right") => {
+    scrollRef.current?.scrollBy({
+      left: dir === "right" ? 300 : -300,
       behavior: "smooth",
     });
   };
 
   return (
-    <div
+    <section
       dir="rtl"
-      className={`w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-28 py-10 sm:py-12 lg:py-16 transition-colors ${t.pageBg}`}
+      className={`relative py-20 lg:py-28 overflow-hidden ${darkMode ? "bg-ink-light" : "bg-gray-50"}`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 sm:mb-10">
-        <div>
-          <h2 className={`text-xl sm:text-2xl font-bold mb-2 ${t.titleText}`}>
-            متخصصان برتر
-          </h2>
-          <p className={`text-sm sm:text-base ${t.mutedText}`}>
-            تجربه، تخصص و تعهد در کنار شما
-          </p>
-        </div>
-
-        <div className="flex gap-2 self-end sm:self-auto">
-          <button
-            onClick={() => scroll("right")}
-            className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer shrink-0 transition-colors ${t.scrollBtn}`}
-            aria-label="راست"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </button>
-          <button
-            onClick={() => scroll("left")}
-            className={`w-9 h-9 rounded-full border flex items-center justify-center cursor-pointer shrink-0 transition-colors ${t.scrollBtn}`}
-            aria-label="چپ"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div
-        ref={scrollRef}
-        className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-2"
-        style={{ scrollbarWidth: "none" }}
-      >
-        {doctors.map((doctor, index) => (
-          <div
-            key={index}
-            className={`w-[200px] sm:w-[220px] md:w-[230px] border rounded-2xl p-4 sm:p-5 flex flex-col items-center text-center shrink-0 transition-colors ${t.cardGradient}`}
-          >
-            <img
-              src={doctor.image}
-              alt={doctor.name}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover mb-3 sm:mb-4"
+      <Container>
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
+          <div className="text-right">
+            <SectionTitle
+              eyebrow="تیم متخصصان"
+              title="متخصصان برتر"
+              description="تجربه، تخصص و تعهد در کنار شما"
+              align="right"
+              className="mb-0"
             />
-            <h3 className={`font-bold text-sm sm:text-base mb-1 ${t.titleText}`}>
-              {doctor.name}
-            </h3>
-            <p className={`text-xs sm:text-sm mb-2 ${t.mutedText}`}>
-              {doctor.specialty}
-            </p>
+          </div>
 
-            <div className="flex items-center gap-1 text-yellow-400 mb-3 sm:mb-4">
-              <StarIcon />
-              <span className={`text-xs sm:text-sm font-medium ${
-                darkMode ? "text-gray-200" : "text-gray-700"
-              }`}>
-                {doctor.rating}
-              </span>
-            </div>
-
-            <button className={`w-full py-2 rounded-full border-2 text-xs sm:text-sm font-medium transition-colors cursor-pointer ${t.outlineBtn}`}>
-              مشاهده پروفایل
+          <div className="flex gap-2 self-end sm:self-auto">
+            <button
+              onClick={() => scroll("right")}
+              className="w-11 h-11 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all"
+            >
+              <ArrowRight size={18} />
+            </button>
+            <button
+              onClick={() => scroll("left")}
+              className="w-11 h-11 rounded-full border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 flex items-center justify-center hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all"
+            >
+              <ArrowLeft size={18} />
             </button>
           </div>
-        ))}
-      </div>
-    </div>
+        </div>
+
+        <div
+          ref={scrollRef}
+          className="flex gap-5 overflow-x-auto scroll-smooth no-scrollbar pb-4"
+          style={{ scrollbarWidth: "none" }}
+        >
+          {doctors.map((doctor, i) => (
+            <DoctorCard key={i} doctor={doctor} index={i} />
+          ))}
+        </div>
+      </Container>
+    </section>
   );
 };
 
