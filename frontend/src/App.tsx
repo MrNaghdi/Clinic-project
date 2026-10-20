@@ -3,6 +3,7 @@ import { Navbar } from "./shared/components/layout/Navbar";
 import { Footer } from "./shared/components/layout/Footer";
 import { CommandMenu } from "./shared/components/layout/CommandMenu";
 import { ScrollProgress } from "./shared/components/layout/ScrollProgress";
+import { ScrollToTop } from "./shared/components/ScrollToTop";
 import { BackToTop } from "./shared/components/layout/BackToTop";
 
 // ── Home
@@ -39,10 +40,10 @@ import SpecialistProfilePage from "./features/specialists/pages/SpecialistProfil
 function App() {
   return (
     <>
+      <ScrollToTop />
       <ScrollProgress />
       <CommandMenu />
       <BackToTop />
-
       <Routes>
         <Route
           path="/"
@@ -107,7 +108,6 @@ function App() {
           <Route path="avatar" element={<UploadAvatarPage />} />
         </Route>
 
-        
         <Route
           path="/specialist"
           element={
