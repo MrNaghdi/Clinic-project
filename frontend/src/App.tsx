@@ -1,10 +1,11 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { Navbar } from "./shared/components/layout/Navbar";
 import { Footer } from "./shared/components/layout/Footer";
 import { CommandMenu } from "./shared/components/layout/CommandMenu";
 import { ScrollProgress } from "./shared/components/layout/ScrollProgress";
-import { ScrollToTop } from "./shared/components/ScrollToTop";
 import { BackToTop } from "./shared/components/layout/BackToTop";
+import { ProtectedRoute } from "./shared/components/ProtectedRoute";
+import { ScrollToTop } from "./shared/components/ScrollToTop";
 
 // ── Home
 import HomePage from "./shared/components/Home";
@@ -13,9 +14,12 @@ import HomePage from "./shared/components/Home";
 import ServicesPage from "./features/services/pages/ServicesPage";
 import ServiceDetailPage from "./features/services/pages/ServiceDetailPage";
 
-// ── Specialists
+// ── Specialists (public)
 import SpecialistsPage from "./features/specialists/pages/SpecialistsPage";
 import SpecialistDetailPage from "./features/specialists/pages/SpecialistDetailPage";
+
+// ── Booking
+import BookingPage from "./features/booking/pages/BookingPage";
 
 // ── Auth
 import LoginPage from "./features/auth/pages/LoginPage";
@@ -32,19 +36,20 @@ import UploadAvatarPage from "./features/users/pages/UploadAvatarPage";
 
 // ── Specialist Dashboard
 import SpecialistDashboardLayout from "./features/specialists/pages/SpecialistDashboardLayout";
-import SpecialistRoute from "./features/specialists/pages/SpecialistRoute";
 import SpecialistOverviewPage from "./features/specialists/pages/SpecialistOverviewPage";
 import SpecialistAppointmentsPage from "./features/specialists/pages/SpecialistAppointmentsPage";
 import SpecialistProfilePage from "./features/specialists/pages/SpecialistProfilePage";
 
 function App() {
+  const { pathname } = useLocation();
+
   return (
     <>
       <ScrollToTop />
       <ScrollProgress />
       <CommandMenu />
       <BackToTop />
-      <Routes>
+      <Routes key={pathname}>
         <Route
           path="/"
           element={
@@ -95,12 +100,33 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/booking"
+          element={
+            <>
+              <Navbar />
+              <BookingPage />
+              <Footer />
+            </>
+          }
+        />
 
+        {/* ═══════ Auth ═══════ */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/complete-profile" element={<CompleteProfilePage />} />
 
-        <Route path="/profile" element={<DashboardLayout />}>
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute
+              allowedRoles={["customer", "admin", "super_admin"]}
+              redirectTo="/specialist"
+            >
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<ProfilePage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
           <Route path="history" element={<HistoryPage />} />
@@ -111,9 +137,12 @@ function App() {
         <Route
           path="/specialist"
           element={
-            <SpecialistRoute>
+            <ProtectedRoute
+              allowedRoles={["specialist", "admin", "super_admin"]}
+              redirectTo="/profile"
+            >
               <SpecialistDashboardLayout />
-            </SpecialistRoute>
+            </ProtectedRoute>
           }
         >
           <Route index element={<SpecialistOverviewPage />} />

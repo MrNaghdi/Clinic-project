@@ -162,7 +162,7 @@ export function CTASection() {
               transition={{ delay: 0.6 }}
               className="flex flex-wrap items-center justify-center gap-4"
             >
-              <Link to="/services">
+              <Link to="/booking">
                 <Button
                   variant="brand"
                   size="lg"

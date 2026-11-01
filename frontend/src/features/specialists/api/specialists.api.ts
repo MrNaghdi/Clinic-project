@@ -19,7 +19,13 @@ export interface SpecialistUser {
 export interface WorkingHours {
   id: number;
   specialist_id: number;
-  day_of_week: number | string;  
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
+export interface WorkingHoursInput {
+  day_of_week: number;
   start_time: string;
   end_time: string;
 }
@@ -31,7 +37,7 @@ export interface Specialist {
   bio: string | null;
   status: SpecialistStatus;
   is_active: boolean;
-  working_hours?: WorkingHours[];   
+  working_hours?: WorkingHours[];
   services?: Service[];
   created_at: string;
   updated_at: string;
@@ -42,14 +48,9 @@ export interface CreateSpecialistDto {
   bio?: string;
 }
 
-export interface UpdateSpecialistDto {
-  bio?: string;
-  is_active?: boolean;
-}
-
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════
 // API Functions
-// ─────────────────────────────────────────────
+// ═══════════════════════════════════════
 
 export async function findAllSpecialists(): Promise<Specialist[]> {
   const response = await axiosInstance.get<Specialist[]>("/specialists");
@@ -70,5 +71,35 @@ export async function createSpecialist(
   dto: CreateSpecialistDto,
 ): Promise<Specialist> {
   const response = await axiosInstance.post<Specialist>("/specialists", dto);
+  return response.data;
+}
+
+export async function updateMySpecialistProfile(dto: {
+  bio?: string;
+}): Promise<Specialist> {
+  const response = await axiosInstance.patch<Specialist>(
+    "/specialists/me",
+    dto,
+  );
+  return response.data;
+}
+
+export async function updateMySpecialistServices(
+  service_ids: number[],
+): Promise<Specialist> {
+  const response = await axiosInstance.patch<Specialist>(
+    "/specialists/me/services",
+    { service_ids },
+  );
+  return response.data;
+}
+
+export async function updateMyWorkingHours(
+  working_hours: WorkingHoursInput[],
+): Promise<Specialist> {
+  const response = await axiosInstance.patch<Specialist>(
+    "/specialists/me/working-hours",
+    { working_hours },
+  );
   return response.data;
 }

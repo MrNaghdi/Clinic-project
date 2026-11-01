@@ -39,14 +39,24 @@ export default function VerifyOtpPage() {
   const mutation = useMutation({
     mutationFn: (code: string) => verifyOtp(phone, code),
     onSuccess: (data) => {
-      // 🎯 فیلد درست: token
       localStorage.setItem("token", data.token);
-      
-      console.log("✅ Login successful:", data);
-      console.log("🔑 Token saved:", data.token?.slice(0, 20) + "...");
-      
+
       const needsProfile = !data.user?.first_name;
-      navigate(needsProfile ? "/complete-profile" : "/profile");
+      if (needsProfile) {
+        navigate("/complete-profile");
+        return;
+      }
+
+      if (data.user?.role === "specialist") {
+        navigate("/specialist");
+      } else if (
+        data.user?.role === "admin" ||
+        data.user?.role === "super_admin"
+      ) {
+        navigate("/admin");
+      } else {
+        navigate("/profile");
+      }
     },
     onError: (err: any) => {
       setError(
@@ -57,6 +67,7 @@ export default function VerifyOtpPage() {
       inputRefs.current[0]?.focus();
     },
   });
+
   const resendMutation = useMutation({
     mutationFn: () => sendOtp(phone),
     onSuccess: () => {
@@ -121,18 +132,14 @@ export default function VerifyOtpPage() {
       dir="rtl"
       className="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-ink"
     >
+      {/* ═══ LEFT: Visual Side ═══ */}
       <div className="hidden lg:flex relative overflow-hidden">
-        {/* Background Image */}
         <img
           src={heroImage}
           alt="SkinCare"
           className="absolute inset-0 w-full h-full object-cover object-center scale-105"
         />
-
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand-900/90 via-brand-700/70 to-accent-800/80" />
-
-        {/* Aurora Blobs */}
         <div
           className="absolute top-0 right-0 w-[500px] h-[500px] bg-accent-400/30 rounded-full blur-[100px] -translate-y-1/3 translate-x-1/3 animate-pulse"
           style={{ animationDuration: "6s" }}
@@ -143,7 +150,6 @@ export default function VerifyOtpPage() {
         />
         <div className="absolute top-1/2 left-1/2 w-[400px] h-[400px] bg-purple-400/20 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
 
-        {/* Diagonal Lines */}
         <div className="absolute inset-0 opacity-20">
           <div
             className="absolute inset-0"
@@ -154,12 +160,9 @@ export default function VerifyOtpPage() {
           />
         </div>
 
-        {/* Glow */}
         <div className="absolute top-1/4 left-0 w-96 h-96 bg-white/10 rounded-full blur-[120px]" />
 
-        {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-          {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-3 w-fit group">
             <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 group-hover:scale-105 transition-transform">
               <Sparkles size={20} className="text-white" fill="white" />
@@ -174,7 +177,6 @@ export default function VerifyOtpPage() {
             </div>
           </Link>
 
-          {/* Main Text */}
           <div className="max-w-md">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
@@ -188,7 +190,6 @@ export default function VerifyOtpPage() {
               <br />
               فاصله دارید
             </motion.h1>
-
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -197,7 +198,6 @@ export default function VerifyOtpPage() {
             >
               کد تایید به شماره شما ارسال شد. لطفاً کد ۶ رقمی را وارد کنید.
             </motion.p>
-
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -219,7 +219,6 @@ export default function VerifyOtpPage() {
             </motion.div>
           </div>
 
-          {/* Footer */}
           <p className="text-xs text-white/60">
             © {new Date().toLocaleDateString("fa-IR", { year: "numeric" })}{" "}
             SkinCare
@@ -232,7 +231,6 @@ export default function VerifyOtpPage() {
         <AuroraBackground />
 
         <Container size="sm" className="relative z-10 max-w-md mx-auto">
-          {/* Mobile Logo */}
           <Link
             to="/"
             className="lg:hidden inline-flex items-center gap-2.5 mb-8 group"
@@ -255,13 +253,11 @@ export default function VerifyOtpPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Header */}
             <div className="mb-8">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium mb-4">
                 <CheckCircle2 size={12} />
                 کد ارسال شد
               </div>
-
               <h1 className="text-3xl lg:text-4xl font-black text-gray-900 dark:text-white mb-3">
                 کد تایید را وارد کنید
               </h1>
@@ -276,7 +272,6 @@ export default function VerifyOtpPage() {
               </p>
             </div>
 
-            {/* OTP Inputs */}
             <div className="flex justify-center gap-2 mb-6" dir="ltr">
               {otp.map((digit, index) => (
                 <input
@@ -332,7 +327,6 @@ export default function VerifyOtpPage() {
               </div>
             )}
 
-            {/* Resend */}
             <div className="text-center mb-8">
               {resendTimer > 0 ? (
                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -350,9 +344,7 @@ export default function VerifyOtpPage() {
                 >
                   <RotateCcw
                     size={14}
-                    className={
-                      resendMutation.isPending ? "animate-spin" : ""
-                    }
+                    className={resendMutation.isPending ? "animate-spin" : ""}
                   />
                   {resendMutation.isPending
                     ? "در حال ارسال..."
@@ -361,7 +353,6 @@ export default function VerifyOtpPage() {
               )}
             </div>
 
-            {/* Back */}
             <Link
               to="/login"
               className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors group"
