@@ -15,6 +15,8 @@ import KeyvRedis, { Keyv } from '@keyv/redis';
 import { SpecialistModule } from './specialist/specialist.module';
 import { Specialist } from './specialist/entities/specialist.entity';
 import { WorkingHours } from './specialist/entities/workingHours.entity';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { Appointment } from './appointments/entities/appointment.entity';
 
 @Module({
   imports: [
@@ -31,7 +33,7 @@ import { WorkingHours } from './specialist/entities/workingHours.entity';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp, Service, Specialist, WorkingHours],
+        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -60,6 +62,7 @@ import { WorkingHours } from './specialist/entities/workingHours.entity';
     UsersModule,
     ServicesModule,
     SpecialistModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
