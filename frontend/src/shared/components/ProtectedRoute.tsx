@@ -15,13 +15,14 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const token =
     typeof window !== "undefined" && localStorage.getItem("token");
-
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["user", "me"],
-    queryFn: fetchMe,
-    enabled: !!token,
-    retry: false,
-  });
+    const { data: user, isLoading } = useQuery({
+      queryKey: ["user", "me"],
+      queryFn: fetchMe,
+      enabled: !!token,
+      retry: false,
+      staleTime: 10 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+    });
 
   if (!token) {
     return <Navigate to="/login" replace />;

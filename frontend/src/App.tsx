@@ -14,7 +14,7 @@ import HomePage from "./shared/components/Home";
 import ServicesPage from "./features/services/pages/ServicesPage";
 import ServiceDetailPage from "./features/services/pages/ServiceDetailPage";
 
-// ── Specialists (public)
+// ── Specialists
 import SpecialistsPage from "./features/specialists/pages/SpecialistsPage";
 import SpecialistDetailPage from "./features/specialists/pages/SpecialistDetailPage";
 
@@ -40,6 +40,15 @@ import SpecialistOverviewPage from "./features/specialists/pages/SpecialistOverv
 import SpecialistAppointmentsPage from "./features/specialists/pages/SpecialistAppointmentsPage";
 import SpecialistProfilePage from "./features/specialists/pages/SpecialistProfilePage";
 
+// ── Admin
+import { AdminLayout } from "./features/admin/components/AdminLayout";
+import { RequireSuperAdmin } from "./features/admin/components/RequireSuperAdmin";
+import AdminDashboard from "./features/admin/pages/AdminDashboard";
+import AdminUsers from "./features/admin/pages/AdminUsers";
+import AdminServices from "./features/admin/pages/AdminServices";
+import AdminAdmins from "./features/admin/pages/AdminAdmins";
+import AdminAppointments from "./features/admin/pages/AdminAppointments";
+
 function App() {
   const { pathname } = useLocation();
 
@@ -49,6 +58,7 @@ function App() {
       <ScrollProgress />
       <CommandMenu />
       <BackToTop />
+
       <Routes key={pathname}>
         <Route
           path="/"
@@ -116,6 +126,7 @@ function App() {
         <Route path="/verify-otp" element={<VerifyOtpPage />} />
         <Route path="/complete-profile" element={<CompleteProfilePage />} />
 
+        {/* ═══════ User Dashboard ═══════ */}
         <Route
           path="/profile"
           element={
@@ -134,6 +145,7 @@ function App() {
           <Route path="avatar" element={<UploadAvatarPage />} />
         </Route>
 
+        {/* ═══════ Specialist Dashboard ═══════ */}
         <Route
           path="/specialist"
           element={
@@ -148,6 +160,28 @@ function App() {
           <Route index element={<SpecialistOverviewPage />} />
           <Route path="appointments" element={<SpecialistAppointmentsPage />} />
           <Route path="profile" element={<SpecialistProfilePage />} />
+        </Route>
+
+        {/* ═══════ Admin ═══════ */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute
+              allowedRoles={["admin", "super_admin"]}
+              redirectTo="/"
+            >
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUsers />} />
+          <Route path="services" element={<AdminServices />} />
+          <Route path="appointments" element={<AdminAppointments />} />
+
+          <Route element={<RequireSuperAdmin />}>
+            <Route path="admins" element={<AdminAdmins />} />
+          </Route>
         </Route>
       </Routes>
     </>

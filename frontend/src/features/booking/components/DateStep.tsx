@@ -40,10 +40,9 @@ export function DateStep({
 
   const days = data?.days ?? [];
 
-  const sortedDays = [...days].sort((a, b) => {
-    const toSat = (jsDay: number) => (jsDay + 1) % 7;
-    return toSat(a.day_of_week) - toSat(b.day_of_week);
-  });
+  const sortedDays = [...days].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
 
   const selectedDayData = sortedDays.find((d) => d.date === selectedDate);
 
