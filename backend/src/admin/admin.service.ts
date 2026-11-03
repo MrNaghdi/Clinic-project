@@ -52,9 +52,6 @@ export class AdminService {
     private readonly cache: Cache,
   ) {}
 
-  // ═══════════════════════════════════════════
-  // Helpers — cache invalidation
-  // ═══════════════════════════════════════════
   private async invalidateSpecialist(
     specialistId: number,
     userId: number,
@@ -100,18 +97,16 @@ export class AdminService {
   async promoteToSpecialist(userId: number, dto: PromoteSpecialistDto) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('کاربر یافت نشد');
-
-    if (user.role === UserRole.Specialist) {
-      throw new ConflictException('این کاربر از قبل متخصص است');
-    }
-
+  
     const existing = await this.specialistRepo.findOne({
       where: { user_id: userId },
+      relations: { services: true },
     });
-    if (existing) {
-      throw new ConflictException('رکورد متخصص برای این کاربر وجود دارد');
+  
+    if (existing && existing.is_active) {
+      throw new ConflictException('این کاربر از قبل متخصص است');
     }
-
+  
     let services: Service[] = [];
     if (dto.service_ids?.length) {
       services = await this.serviceRepo.findBy({ id: In(dto.service_ids) });
@@ -119,22 +114,37 @@ export class AdminService {
         throw new BadRequestException('برخی از خدمات یافت نشدند');
       }
     }
-
-    const specialist = this.specialistRepo.create({
-      user_id: user.id,
-      bio: dto.bio ?? null,
-      status: SpecialistStatus.Approved,
-      is_active: true,
-      services,
-    });
-    const saved = await this.specialistRepo.save(specialist);
-
+  
+    let specialistId: number;
+  
+    if (existing && !existing.is_active) {
+      existing.bio = dto.bio ?? existing.bio;
+      existing.status = SpecialistStatus.Approved;
+      existing.is_active = true;
+      if (dto.service_ids !== undefined) {
+        existing.services = services;
+      }
+      const saved = await this.specialistRepo.save(existing);
+      specialistId = saved.id;
+    } else {
+      const specialist = this.specialistRepo.create({
+        user_id: user.id,
+        bio: dto.bio ?? null,
+        status: SpecialistStatus.Approved,
+        is_active: true,
+        services,
+      });
+      const saved = await this.specialistRepo.save(specialist);
+      specialistId = saved.id;
+    }
+  
     await this.usersService.updateRole(user.id, UserRole.Specialist);
-
-    await this.invalidateSpecialist(saved.id, user.id);
-
+  
+    // cache invalidation
+    await this.invalidateSpecialist(specialistId, user.id);
+  
     return this.specialistRepo.findOne({
-      where: { id: saved.id },
+      where: { id: specialistId },
       relations: { user: true, services: true },
     });
   }
@@ -189,7 +199,6 @@ export class AdminService {
     specialist.services = services;
     await this.specialistRepo.save(specialist);
 
-    // 🧹 cache invalidation
     await this.invalidateSpecialist(specialist.id, specialist.user_id);
 
     return this.specialistRepo.findOne({
