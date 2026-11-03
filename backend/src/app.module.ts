@@ -17,6 +17,7 @@ import { Specialist } from './specialist/entities/specialist.entity';
 import { WorkingHours } from './specialist/entities/workingHours.entity';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { Appointment } from './appointments/entities/appointment.entity';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { Appointment } from './appointments/entities/appointment.entity';
     ServicesModule,
     SpecialistModule,
     AppointmentsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

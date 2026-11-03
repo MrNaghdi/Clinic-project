@@ -28,10 +28,8 @@ const KEY_LIST = 'specialist:all';
 const keyOne = (id: number) => `specialist:${id}`;
 const keyByUser = (userId: number) => `specialist:user:${userId}`;
 
-// ⬇️ helper: تبدیل day_of_week (0=یکشنبه) به ترتیب شنبه‌محور (0=شنبه)
 const toSaturdayOrder = (day: number): number => (day + 1) % 7;
 
-// ⬇️ helper: مرتب‌سازی working_hours (شنبه اول)
 const sortWorkingHours = (specialist: Specialist): Specialist => {
   if (specialist.working_hours) {
     specialist.working_hours.sort(
@@ -56,9 +54,6 @@ export class SpecialistService {
     private readonly dataSource: DataSource,
   ) {}
 
-  // ═══════════════════════════════════════
-  // Helpers
-  // ═══════════════════════════════════════
   private toMinutes(time: string): number {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
@@ -69,12 +64,16 @@ export class SpecialistService {
   }
 
   // ═══════════════════════════════════════
-  // FIND ALL (with sorted working_hours)
+  // FIND ALL (list)
   // ═══════════════════════════════════════
   async findAll(): Promise<Specialist[]> {
     const cached = await this.cache.get<Specialist[]>(KEY_LIST);
-    if (cached) return cached;
+    if (cached) {
+      console.log(`🎯 [cache HIT] specialist:all (${cached.length} items)`);
+      return cached;
+    }
 
+    console.log('💾 [cache MISS] specialist:all → DB');
     const specialists = await this.specialistRepository.find({
       where: { is_active: true, status: SpecialistStatus.Approved },
       relations: {
@@ -87,7 +86,15 @@ export class SpecialistService {
 
     specialists.forEach(sortWorkingHours);
 
-    await this.cache.set(KEY_LIST, specialists, TTL_LIST);
+    try {
+      await this.cache.set(KEY_LIST, specialists, TTL_LIST);
+      console.log(
+        `✅ [cache SET] specialist:all (${specialists.length} items)`,
+      );
+    } catch (err: any) {
+      console.error('❌ [cache SET FAILED] specialist:all:', err.message);
+    }
+
     return specialists;
   }
 
@@ -97,8 +104,12 @@ export class SpecialistService {
   async findById(id: number): Promise<Specialist | null> {
     const key = keyOne(id);
     const cached = await this.cache.get<Specialist>(key);
-    if (cached) return cached;
+    if (cached) {
+      console.log(`🎯 [cache HIT] specialist:${id}`);
+      return cached;
+    }
 
+    console.log(`💾 [cache MISS] specialist:${id} → DB`);
     const specialist = await this.specialistRepository.findOne({
       where: { id, is_active: true, status: SpecialistStatus.Approved },
       relations: {
@@ -114,7 +125,13 @@ export class SpecialistService {
 
     sortWorkingHours(specialist);
 
-    await this.cache.set(key, specialist, TTL_ONE);
+    try {
+      await this.cache.set(key, specialist, TTL_ONE);
+      console.log(`✅ [cache SET] specialist:${id}`);
+    } catch (err: any) {
+      console.error(`❌ [cache SET FAILED] specialist:${id}:`, err.message);
+    }
+
     return specialist;
   }
 
@@ -124,8 +141,12 @@ export class SpecialistService {
   async findByUserId(userId: number): Promise<Specialist | null> {
     const key = keyByUser(userId);
     const cached = await this.cache.get<Specialist>(key);
-    if (cached) return cached;
+    if (cached) {
+      console.log(`🎯 [cache HIT] specialist:user:${userId}`);
+      return cached;
+    }
 
+    console.log(`💾 [cache MISS] specialist:user:${userId} → DB`);
     const specialist = await this.specialistRepository.findOne({
       where: { user_id: userId },
       relations: {
@@ -139,12 +160,21 @@ export class SpecialistService {
 
     sortWorkingHours(specialist);
 
-    await this.cache.set(key, specialist, TTL_ONE);
+    try {
+      await this.cache.set(key, specialist, TTL_ONE);
+      console.log(`✅ [cache SET] specialist:user:${userId}`);
+    } catch (err: any) {
+      console.error(
+        `❌ [cache SET FAILED] specialist:user:${userId}:`,
+        err.message,
+      );
+    }
+
     return specialist;
   }
 
   // ═══════════════════════════════════════
-  // CREATE (ادمین)
+  // CREATE
   // ═══════════════════════════════════════
   async create(dto: CreateSpecialistDto): Promise<Specialist> {
     const user = await this.usersService.findById(dto.user_id);
@@ -167,7 +197,11 @@ export class SpecialistService {
 
     const saved = await this.specialistRepository.save(specialist);
     await this.usersService.updateRole(dto.user_id, UserRole.Specialist);
+
+    // invalidate
     await this.cache.del(KEY_LIST);
+    await this.cache.del(keyByUser(dto.user_id));
+    console.log('🗑️  [cache CLEAR] specialist:all + specialist:user');
 
     return saved;
   }
@@ -192,9 +226,12 @@ export class SpecialistService {
 
     const saved = await this.specialistRepository.save(specialist);
 
-    await this.cache.del(`specialist:${specialist.id}`);
+    await this.cache.del(keyOne(specialist.id));
     await this.cache.del(keyByUser(userId));
     await this.cache.del(KEY_LIST);
+    console.log(
+      `🗑️  [cache CLEAR] specialist:${specialist.id} + specialist:user:${userId} + specialist:all`,
+    );
 
     return saved;
   }
@@ -221,9 +258,12 @@ export class SpecialistService {
     specialist.services = services;
     const saved = await this.specialistRepository.save(specialist);
 
-    await this.cache.del(`specialist:${specialist.id}`);
+    await this.cache.del(keyOne(specialist.id));
     await this.cache.del(keyByUser(userId));
     await this.cache.del(KEY_LIST);
+    console.log(
+      `🗑️  [cache CLEAR] specialist:${specialist.id} + specialist:user:${userId} + specialist:all`,
+    );
 
     return saved;
   }
@@ -308,13 +348,14 @@ export class SpecialistService {
 
     await this.workingHoursRepository.save(newHours);
 
-    await this.cache.del(`specialist:${specialist.id}`);
+    await this.cache.del(keyOne(specialist.id));
     await this.cache.del(keyByUser(userId));
     await this.cache.del(KEY_LIST);
     for (let day = 0; day <= 6; day++) {
       await this.cache.del(`working_hours:${specialist.id}:${day}`);
     }
     await this.cache.del(`working_hours:${specialist.id}:all`);
+    console.log(`🗑️  [cache CLEAR] specialist:${specialist.id} + related`);
 
     const result = await this.findByUserId(userId);
     return result as Specialist;

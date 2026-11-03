@@ -94,7 +94,13 @@ export class ServicesService {
     await this.cache.del(keyOne(id));
     console.log(`🗑️  [cache CLEAR] services:all + services:${id}`);
   }
-
+  async updateImage(id: number, imagePath: string): Promise<Service> {
+    const service = await this.findByIdOrFail(id);
+    service.image = imagePath;
+    const saved = await this.serviceRepository.save(service);
+    await this.invalidate(id);
+    return saved;
+  }
   private async findByIdOrFail(id: number): Promise<Service> {
     const service = await this.findById(id);
     if (!service) {

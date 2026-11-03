@@ -68,4 +68,40 @@ export class UsersService {
     }
     return this.findById(userId) as Promise<User>;
   }
+
+  async list(opts: {
+    search?: string;
+    role?: UserRole;
+    page?: number;
+    limit?: number;
+  }) {
+    const page = Math.max(1, opts.page || 1);
+    const limit = Math.min(100, Math.max(1, opts.limit || 20));
+    const skip = (page - 1) * limit;
+
+    const qb = this.userRepository
+      .createQueryBuilder('user')
+      .skip(skip)
+      .take(limit)
+      .orderBy('user.created_at', 'DESC');
+
+    if (opts.role) {
+      qb.andWhere('user.role = :role', { role: opts.role });
+    }
+
+    if (opts.search) {
+      qb.andWhere(
+        '(user.first_name ILIKE :q OR user.last_name ILIKE :q OR user.phone ILIKE :q)',
+        { q: `%${opts.search}%` },
+      );
+    }
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return { items, total, page, limit, pages: Math.ceil(total / limit) };
+  }
+
+  async countByRole(role: UserRole): Promise<number> {
+    return this.userRepository.count({ where: { role } });
+  }
 }
