@@ -7,24 +7,7 @@ import { Container } from "../../../shared/components/ui/Container";
 import { Button } from "../../../shared/components/ui/Button";
 import { Badge } from "../../../shared/components/ui/Badge";
 import { RevealOnScroll } from "../../../shared/components/animations/RevealOnScroll";
-
-import serviceFace from "../../../assets/image/botax.jpg";
-import serviceHair from "../../../assets/image/lift.webp";
-import serviceLaser from "../../../assets/image/laser.webp";
-
-const serviceImages: Record<string, string> = {
-  "لیزر": serviceLaser,
-  "لیزر موهای زائد": serviceLaser,
-  "لیزر مو": serviceLaser,
-  "لیفت": serviceHair,
-  "لیفت صورت": serviceHair,
-  "لیفت ابرو": serviceHair,
-  "بوتاکس": serviceFace,
-  "تزریق بوتاکس": serviceFace,
-  "بوتاکس صورت": serviceFace,
-};
-
-const DEFAULT_IMAGE = serviceFace;
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,9 +18,9 @@ export default function ServiceDetailPage() {
     queryKey: ["services", serviceId],
     queryFn: () => findOne(serviceId),
     enabled: !!serviceId,
+    staleTime: 5 * 60 * 1000,
   });
 
-  // ─── Loading ───
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-ink pt-24 pb-20">
@@ -55,7 +38,6 @@ export default function ServiceDetailPage() {
     );
   }
 
-  // ─── Error ───
   if (isError || !service) {
     return (
       <div className="min-h-screen bg-white dark:bg-ink pt-32 pb-20">
@@ -81,12 +63,11 @@ export default function ServiceDetailPage() {
     );
   }
 
-  const image = serviceImages[service.name] || DEFAULT_IMAGE;
+  const image = getImageUrl(service.image);
 
   return (
     <div className="min-h-screen bg-white dark:bg-ink pt-20 pb-20">
       <Container size="lg">
-        {/* Breadcrumb */}
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,24 +87,27 @@ export default function ServiceDetailPage() {
         </motion.nav>
 
         <div className="grid lg:grid-cols-5 gap-8">
-          {/* ─── Left: Image ─── */}
           <RevealOnScroll className="lg:col-span-3">
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-500/10">
-              <img
-                src={image}
-                alt={service.name}
-                className="w-full h-[400px] lg:h-[600px] object-cover object-center"
-              />
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-brand-500/10 bg-gradient-to-br from-brand-500/20 to-accent-500/20">
+              {image ? (
+                <img
+                  src={image}
+                  alt={service.name}
+                  className="w-full h-[400px] lg:h-[600px] object-cover object-center"
+                />
+              ) : (
+                <div className="w-full h-[400px] lg:h-[600px] flex items-center justify-center">
+                  <Sparkles size={96} className="text-white/40" />
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-              {/* Badge on image */}
               <div className="absolute top-6 right-6">
                 <Badge variant="success" dot>
                   فعال
                 </Badge>
               </div>
 
-              {/* Service name on image (mobile) */}
               <div className="absolute bottom-0 right-0 left-0 p-8 lg:hidden">
                 <h1 className="text-4xl font-black text-white">
                   {service.name}
@@ -132,7 +116,6 @@ export default function ServiceDetailPage() {
             </div>
           </RevealOnScroll>
 
-          {/* ─── Right: Info ─── */}
           <div className="lg:col-span-2">
             <RevealOnScroll delay={0.1}>
               <div className="sticky top-28">
@@ -145,7 +128,6 @@ export default function ServiceDetailPage() {
                   </h1>
                 </div>
 
-                {/* Description */}
                 <div className="mb-8">
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
                     درباره این خدمت
@@ -155,7 +137,6 @@ export default function ServiceDetailPage() {
                   </p>
                 </div>
 
-                {/* Info Cards */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-ink-light p-5">
                     <div className="flex items-center gap-2 mb-2">
@@ -188,7 +169,6 @@ export default function ServiceDetailPage() {
                   </div>
                 </div>
 
-                {/* CTA */}
                 <div className="flex flex-col gap-3">
                   <Link to={`/specialists?service=${service.id}`}>
                     <Button
@@ -215,4 +195,4 @@ export default function ServiceDetailPage() {
       </Container>
     </div>
   );
-} 
+}

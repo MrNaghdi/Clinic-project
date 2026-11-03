@@ -44,7 +44,7 @@ export interface Appointment {
   created_at: string;
 }
 
-export interface CreateAppointmentDto {
+export interface CreateAppointmentPayload  {
   specialist_id: number;
   service_id: number;
   date: string;
@@ -106,7 +106,7 @@ export interface WeekAvailabilityResponse {
   days: DayAvailability[];
 }
 
-export async function createAppointment(dto: CreateAppointmentDto): Promise<Appointment> {
+export async function createAppointment(dto: CreateAppointmentPayload): Promise<Appointment> {
   const response = await axiosInstance.post<Appointment>("/appointments", dto);
   return response.data;
 }

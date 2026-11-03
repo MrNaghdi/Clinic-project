@@ -82,8 +82,10 @@ function ServiceCard({
         </div>
       </div>
 
-      <div className="relative p-5">
-        <h3 className="font-black text-base mb-2">{service.name}</h3>
+      <div className="relative p-4 sm:p-5">
+        <h3 className="font-black text-sm sm:text-base mb-2 truncate">
+          {service.name}
+        </h3>
 
         {service.description && (
           <p
@@ -95,7 +97,7 @@ function ServiceCard({
           </p>
         )}
 
-        <div className="flex items-center gap-3 text-xs mb-3">
+        <div className="flex flex-wrap items-center gap-3 text-xs mb-3">
           <span className="inline-flex items-center gap-1">
             <Clock size={12} className="text-brand-500" />
             {service.duration_minutes} دقیقه
@@ -138,7 +140,9 @@ function ServiceCard({
           >
             <Power
               size={14}
-              className={service.is_active ? "text-green-500" : "text-gray-400"}
+              className={
+                service.is_active ? "text-green-500" : "text-gray-400"
+              }
             />
           </button>
           <button
@@ -158,7 +162,9 @@ export default function AdminServices() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [includeInactive, setIncludeInactive] = useState(true);
-  const [editing, setEditing] = useState<AdminService | "new" | null>(null);
+  const [editing, setEditing] = useState<AdminService | "new" | null>(
+    null,
+  );
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["admin", "services", { search, includeInactive }],
@@ -184,8 +190,12 @@ export default function AdminServices() {
         if (window.confirm(`${msg}\n\nحذف اجباری انجام شود؟`)) {
           try {
             await deleteService(s.id, true);
-            queryClient.invalidateQueries({ queryKey: ["admin", "services"] });
-            queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+            queryClient.invalidateQueries({
+              queryKey: ["admin", "services"],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["admin", "stats"],
+            });
           } catch (e2: any) {
             alert(e2?.response?.data?.message ?? "خطا");
           }
@@ -207,11 +217,11 @@ export default function AdminServices() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black mb-1">خدمات</h2>
+          <h2 className="text-xl sm:text-2xl font-black mb-1">خدمات</h2>
           <p
-            className={`text-sm ${
+            className={`text-xs sm:text-sm ${
               darkMode ? "text-white/50" : "text-slate-500"
             }`}
           >
@@ -220,7 +230,7 @@ export default function AdminServices() {
         </div>
         <button
           onClick={() => setEditing("new")}
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90"
+          className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 w-full sm:w-auto"
         >
           <Plus size={16} />
           خدمت جدید
@@ -248,7 +258,7 @@ export default function AdminServices() {
           />
         </div>
         <label
-          className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border cursor-pointer text-sm font-bold ${
+          className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border cursor-pointer text-sm font-bold justify-center ${
             darkMode
               ? "bg-white/5 border-white/10"
               : "bg-white border-slate-200"
@@ -265,7 +275,7 @@ export default function AdminServices() {
       </div>
 
       {isLoading && services.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -277,18 +287,22 @@ export default function AdminServices() {
         </div>
       ) : services.length === 0 ? (
         <div
-          className={`rounded-2xl p-12 text-center border ${
+          className={`rounded-2xl p-8 sm:p-12 text-center border ${
             darkMode
               ? "bg-white/[0.03] border-white/10"
               : "bg-white border-slate-200"
           }`}
         >
-          <p className={darkMode ? "text-white/50" : "text-slate-500"}>
+          <p
+            className={`text-sm ${
+              darkMode ? "text-white/50" : "text-slate-500"
+            }`}
+          >
             خدمتی وجود ندارد
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {services.map((s, i) => (
               <ServiceCard
@@ -311,8 +325,12 @@ export default function AdminServices() {
           onClose={() => setEditing(null)}
           onSuccess={() => {
             setEditing(null);
-            queryClient.invalidateQueries({ queryKey: ["admin", "services"] });
-            queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+            queryClient.invalidateQueries({
+              queryKey: ["admin", "services"],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["admin", "stats"],
+            });
           }}
         />
       )}

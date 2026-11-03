@@ -4,6 +4,7 @@ import { Check, Star, Award, AlertCircle } from "lucide-react";
 import { findAllSpecialists } from "../../specialists/api/specialists.api";
 import type { Specialist } from "../../specialists/api/specialists.api";
 import type { Service } from "../../services/api/services.api";
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 interface SpecialistStepProps {
   service: Service;
@@ -23,19 +24,23 @@ export function SpecialistStep({
   const { data: allSpecialists, isLoading } = useQuery({
     queryKey: ["specialists"],
     queryFn: findAllSpecialists,
+    staleTime: 5 * 60 * 1000,
   });
 
-  const specialists = allSpecialists?.filter((s) =>
-    s.services?.some((svc) => svc.id === service.id),
+  const specialists = allSpecialists?.filter(
+    (s) =>
+      s.status === "approved" &&
+      s.is_active &&
+      s.services?.some((svc) => svc.id === service.id),
   );
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map((i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="aspect-square rounded-2xl bg-gray-100 dark:bg-white/5 animate-pulse"
+            className="h-32 rounded-2xl bg-gray-100 dark:bg-white/5 animate-pulse"
           />
         ))}
       </div>
@@ -62,7 +67,7 @@ export function SpecialistStep({
             متخصصی یافت نشد
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 px-4">
-            متأسفانه هیچ متخصصی برای «{service.name}» وجود ندارد. لطفاً خدمت دیگری انتخاب کنید.
+            متأسفانه هیچ متخصصی برای «{service.name}» وجود ندارد.
           </p>
           <button
             onClick={onBack}
@@ -73,13 +78,11 @@ export function SpecialistStep({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
             {specialists.map((specialist, index) => {
               const isSelected = selectedId === specialist.id;
               const fullName = `${specialist.user?.first_name ?? ""} ${specialist.user?.last_name ?? ""}`.trim();
-              const imageUrl = specialist.user?.profile_image
-                ? `http://localhost:3000${specialist.user.profile_image}`
-                : null;
+              const imageUrl = getImageUrl(specialist.user?.profile_image ?? null);
 
               return (
                 <motion.button
@@ -87,58 +90,74 @@ export function SpecialistStep({
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => onSelect(specialist)}
                   className={`
-                    group relative rounded-2xl text-center transition-colors duration-200 border-2 overflow-hidden aspect-square
+                    group relative rounded-2xl text-right transition-all duration-300 border-2 overflow-hidden flex items-center gap-4 p-5
                     ${
                       isSelected
-                        ? "border-brand-500 shadow-lg shadow-brand-500/25"
-                        : "border-gray-200 dark:border-white/10 hover:border-brand-300 dark:hover:border-brand-500/50"
+                        ? "border-brand-500 bg-gradient-to-br from-brand-50 to-accent-50 dark:from-brand-500/10 dark:to-accent-500/10 shadow-lg shadow-brand-500/20"
+                        : "border-gray-200 dark:border-white/10 bg-white dark:bg-ink-light hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-lg"
                     }
                   `}
                 >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={fullName}
-                      className="absolute inset-0 w-full h-full object-cover object-top"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-500 to-accent-500 text-white text-4xl font-black">
-                      {specialist.user?.first_name?.[0]}
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-                  {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="absolute top-2.5 right-2.5 z-20 w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center shadow-lg"
+                  <div className="relative shrink-0">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={fullName}
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = "none";
+                          e.currentTarget.parentElement
+                            ?.querySelector(".fallback-avatar")
+                            ?.classList.remove("hidden");
+                        }}
+                        className="w-20 h-20 rounded-full object-cover object-top border-2 border-white dark:border-ink-light shadow"
+                      />
+                    ) : null}
+                    <div
+                      className={`fallback-avatar ${
+                        imageUrl ? "hidden" : ""
+                      } w-20 h-20 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-2xl font-black`}
                     >
-                      <Check size={14} className="text-white" strokeWidth={3} />
-                    </motion.div>
-                  )}
+                      {specialist.user?.first_name?.[0] ?? "?"}
+                    </div>
 
-                  <div className="absolute bottom-0 right-0 left-0 p-3 text-right">
-                    <h3 className="text-sm font-black text-white mb-0.5 truncate">
+                    {isSelected && (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="absolute -bottom-1 -left-1 w-7 h-7 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 flex items-center justify-center shadow-md border-2 border-white dark:border-ink-light"
+                      >
+                        <Check size={14} className="text-white" strokeWidth={3} />
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate mb-1">
                       {fullName}
                     </h3>
-                    <p className="text-[11px] text-white/80 mb-1.5 truncate">
-                      متخصص پوست و زیبایی
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 truncate">
+                      {specialist.services
+                        ?.slice(0, 2)
+                        .map((s) => s.name)
+                        .join(" · ")}
                     </p>
-                    <div className="flex items-center gap-1.5 text-[11px] text-white/90">
+                    <div className="flex items-center gap-2.5 flex-wrap">
                       <div className="flex items-center gap-0.5 text-yellow-400">
-                        <Star size={11} fill="currentColor" />
-                        <span className="font-bold text-white">5.0</span>
+                        <Star size={14} fill="currentColor" />
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 mr-0.5">
+                          5.0
+                        </span>
                       </div>
-                      <span className="w-1 h-1 rounded-full bg-white/40" />
-                      <span className="flex items-center gap-0.5">
-                        <Award size={10} />
-                        ۱۰+
-                      </span>
+                      <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                      <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                        <Award size={12} />
+                        ۱۰+ سال
+                      </div>
                     </div>
                   </div>
                 </motion.button>

@@ -8,29 +8,13 @@ import { SectionTitle } from "../../../shared/components/ui/SectionTitle";
 import { Badge } from "../../../shared/components/ui/Badge";
 import { RevealOnScroll } from "../../../shared/components/animations/RevealOnScroll";
 import { TiltCard } from "../../../shared/components/animations/TiltCard";
-
-import serviceFace from "../../../assets/image/botax.jpg";
-import serviceHair from "../../../assets/image/lift.webp";
-import serviceLaser from "../../../assets/image/laser.webp";
-
-const serviceImages: Record<string, string> = {
-  "لیزر": serviceLaser,
-  "لیزر موهای زائد": serviceLaser,
-  "لیزر مو": serviceLaser,
-  "لیفت": serviceHair,
-  "لیفت صورت": serviceHair,
-  "لیفت ابرو": serviceHair,
-  "بوتاکس": serviceFace,
-  "تزریق بوتاکس": serviceFace,
-  "بوتاکس صورت": serviceFace,
-};
-
-const DEFAULT_IMAGE = serviceFace;
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 export default function ServicesPage() {
   const { data: services, isLoading, isError } = useQuery({
     queryKey: ["services"],
     queryFn: findAll,
+    staleTime: 5 * 60 * 1000,
   });
 
   return (
@@ -42,7 +26,6 @@ export default function ServicesPage() {
           description="با بهترین کیفیت و جدیدترین متدهای روز دنیا، زیبایی خود را به سطح بعد ببرید"
         />
 
-        {/* Loading */}
         {isLoading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -61,7 +44,6 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Error */}
         {isError && (
           <div className="rounded-3xl border border-red-200 dark:border-red-500/20 bg-red-50 dark:bg-red-500/5 p-12 text-center">
             <p className="text-red-600 dark:text-red-400 mb-4">
@@ -76,7 +58,6 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Empty */}
         {services && services.length === 0 && (
           <div className="rounded-3xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-ink-light p-20 text-center">
             <Sparkles
@@ -92,11 +73,10 @@ export default function ServicesPage() {
           </div>
         )}
 
-        {/* Grid */}
         {services && services.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.map((service, index) => {
-              const image = serviceImages[service.name] || DEFAULT_IMAGE;
+              const image = getImageUrl(service.image);
 
               return (
                 <RevealOnScroll key={service.id} delay={index * 0.05}>
@@ -105,28 +85,33 @@ export default function ServicesPage() {
                       to={`/services/${service.id}`}
                       className="group block relative rounded-3xl overflow-hidden bg-white dark:bg-ink-light border border-gray-200 dark:border-white/5 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:shadow-brand-500/20"
                     >
-                      {/* ── Image */}
-                      <div className="relative h-56 overflow-hidden">
-                        <img
-                          src={image}
-                          alt={service.name}
-                          className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
-                        />
-                        {/* Overlay */}
+                      <div className="relative h-56 overflow-hidden bg-gradient-to-br from-brand-500/20 to-accent-500/20">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt={service.name}
+                            loading="lazy"
+                            className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Sparkles
+                              size={48}
+                              className="text-white/40"
+                            />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
 
-                        {/* Price Badge */}
                         <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-white/90 dark:bg-ink/90 backdrop-blur-md text-xs font-bold text-gray-900 dark:text-white">
                           {service.price.toLocaleString("fa-IR")} تومان
                         </div>
 
-                        {/* Duration Badge */}
                         <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md text-xs font-medium text-white flex items-center gap-1.5">
                           <Clock size={12} />
                           {service.duration_minutes} دقیقه
                         </div>
 
-                        {/* Service Name (on image) */}
                         <div className="absolute bottom-0 right-0 left-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
                           <h3 className="text-2xl font-black text-white">
                             {service.name}
@@ -134,13 +119,11 @@ export default function ServicesPage() {
                         </div>
                       </div>
 
-                      {/* ── Content */}
                       <div className="p-6">
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-6 mb-4 line-clamp-2 min-h-[48px]">
                           {service.description || "توضیحات این خدمت به‌زودی..."}
                         </p>
 
-                        {/* CTA */}
                         <div className="flex items-center justify-between">
                           <Badge variant="brand">مشاهده جزئیات</Badge>
                           <motion.div
@@ -152,7 +135,6 @@ export default function ServicesPage() {
                         </div>
                       </div>
 
-                      {/* Gradient border on hover — یک رنگ واحد */}
                       <div
                         className="absolute inset-0 rounded-3xl bg-gradient-to-r from-brand-500 to-accent-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                         style={{

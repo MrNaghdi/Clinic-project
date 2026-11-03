@@ -3,19 +3,31 @@ import { motion } from "framer-motion";
 import { Clock, Check, ArrowLeft } from "lucide-react";
 import { findAll } from "../../services/api/services.api";
 import type { Service } from "../../services/api/services.api";
-import { getServiceImage } from "../utils/serviceImages";
+import type { Specialist } from "../../specialists/api/specialists.api";
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 interface ServiceStepProps {
   selectedId: number | null;
   onSelect: (service: Service) => void;
   onNext: () => void;
+  specialist?: Specialist | null;
 }
 
-export function ServiceStep({ selectedId, onSelect, onNext }: ServiceStepProps) {
-  const { data: services, isLoading } = useQuery({
+export function ServiceStep({
+  selectedId,
+  onSelect,
+  onNext,
+  specialist = null,
+}: ServiceStepProps) {
+  const { data: allServices, isLoading } = useQuery({
     queryKey: ["services"],
     queryFn: findAll,
+    staleTime: 5 * 60 * 1000,
   });
+
+  const services = specialist
+    ? (specialist.services ?? [])
+    : (allServices ?? []);
 
   if (isLoading) {
     return (
@@ -26,6 +38,61 @@ export function ServiceStep({ selectedId, onSelect, onNext }: ServiceStepProps) 
             className="h-72 rounded-3xl bg-gray-100 dark:bg-white/5 animate-pulse"
           />
         ))}
+      </div>
+    );
+  }
+
+  if (specialist) {
+    const fullName = `${specialist.user?.first_name ?? ""} ${specialist.user?.last_name ?? ""}`.trim();
+    const imageUrl = getImageUrl(specialist.user?.profile_image ?? null);
+
+    return (
+      <div>
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-br from-brand-50 to-accent-50 dark:from-brand-500/10 dark:to-accent-500/10 border border-brand-200 dark:border-brand-500/30 mb-5">
+            {imageUrl ? (
+              <img
+                src={imageUrl}
+                alt={fullName}
+                className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-ink-light shadow"
+              />
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-xl font-black border-2 border-white dark:border-ink-light shadow">
+                {specialist.user?.first_name?.[0] ?? "?"}
+              </div>
+            )}
+            <div className="text-right">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                رزرو نوبت با
+              </p>
+              <p className="text-base font-black text-gray-900 dark:text-white">
+                {fullName}
+              </p>
+            </div>
+          </div>
+
+          <h2 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-2">
+            چه خدمتی می‌خواهید؟
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            از خدمات این پزشک انتخاب کنید
+          </p>
+        </div>
+
+        {services.length === 0 ? (
+          <div className="text-center py-16 max-w-md mx-auto rounded-3xl border-2 border-dashed border-gray-300 dark:border-white/10">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              این پزشک هنوز خدمتی ثبت نکرده است.
+            </p>
+          </div>
+        ) : (
+          <ServiceGrid
+            services={services}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            onNext={onNext}
+          />
+        )}
       </div>
     );
   }
@@ -41,10 +108,33 @@ export function ServiceStep({ selectedId, onSelect, onNext }: ServiceStepProps) 
         </p>
       </div>
 
+      <ServiceGrid
+        services={services}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        onNext={onNext}
+      />
+    </div>
+  );
+}
+
+function ServiceGrid({
+  services,
+  selectedId,
+  onSelect,
+  onNext,
+}: {
+  services: Service[];
+  selectedId: number | null;
+  onSelect: (service: Service) => void;
+  onNext: () => void;
+}) {
+  return (
+    <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-        {services?.map((service, index) => {
+        {services.map((service, index) => {
           const isSelected = selectedId === service.id;
-          const image = getServiceImage(service.name);
+          const image = getImageUrl(service.image);
 
           return (
             <motion.div
@@ -67,7 +157,7 @@ export function ServiceStep({ selectedId, onSelect, onNext }: ServiceStepProps) 
               >
                 <div className="relative h-44 overflow-hidden">
                   <img
-                    src={image}
+                    src={image ?? ""}
                     alt={service.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -118,6 +208,6 @@ export function ServiceStep({ selectedId, onSelect, onNext }: ServiceStepProps) 
           <ArrowLeft size={18} />
         </motion.button>
       </div>
-    </div>
+    </>
   );
 }

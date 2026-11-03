@@ -63,7 +63,7 @@ export function PromoteModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
         onClick={onClose}
       >
         <motion.div
@@ -72,15 +72,17 @@ export function PromoteModal({
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ type: "spring", stiffness: 260, damping: 26 }}
           onClick={(e) => e.stopPropagation()}
-          className={`w-full max-w-lg rounded-2xl p-6 ${
+          className={`w-full max-w-lg rounded-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${
             darkMode ? "bg-[#0c0a14]" : "bg-white"
           }`}
         >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="text-lg font-black">ارتقا به متخصص</h3>
+          <div className="flex items-center justify-between mb-5 gap-3">
+            <div className="min-w-0">
+              <h3 className="text-base sm:text-lg font-black">
+                ارتقا به متخصص
+              </h3>
               <p
-                className={`text-xs mt-0.5 ${
+                className={`text-xs mt-0.5 truncate ${
                   darkMode ? "text-white/50" : "text-slate-500"
                 }`}
               >
@@ -89,7 +91,7 @@ export function PromoteModal({
             </div>
             <button
               onClick={onClose}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
                 darkMode ? "hover:bg-white/10" : "hover:bg-slate-100"
               }`}
             >
@@ -156,10 +158,14 @@ export function PromoteModal({
                               : "border-slate-300"
                           }`}
                         >
-                          {isSel && <Check size={12} className="text-white" />}
+                          {isSel && (
+                            <Check size={12} className="text-white" />
+                          )}
                         </span>
-                        <div className="flex-1">
-                          <p className="text-sm font-bold">{s.name}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold truncate">
+                            {s.name}
+                          </p>
                           <p
                             className={`text-[10px] ${
                               darkMode ? "text-white/40" : "text-slate-400"
@@ -177,25 +183,27 @@ export function PromoteModal({
               </div>
             </div>
 
-            {error && <p className="text-xs text-red-500 font-bold">{error}</p>}
+            {error && (
+              <p className="text-xs text-red-500 font-bold">{error}</p>
+            )}
 
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 disabled:opacity-50"
-              >
-                {loading ? "در حال ارتقا..." : "تأیید و ارتقا"}
-              </button>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
               <button
                 onClick={onClose}
-                className={`px-6 h-11 rounded-xl border font-bold text-sm ${
+                className={`h-11 px-6 rounded-xl border font-bold text-sm ${
                   darkMode
                     ? "border-white/10 hover:bg-white/5"
                     : "border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 لغو
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? "در حال ارتقا..." : "تأیید و ارتقا"}
               </button>
             </div>
           </div>

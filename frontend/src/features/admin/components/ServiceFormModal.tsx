@@ -24,11 +24,15 @@ export function ServiceFormModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(service?.name ?? "");
-  const [description, setDescription] = useState(service?.description ?? "");
+  const [description, setDescription] = useState(
+    service?.description ?? "",
+  );
   const [duration, setDuration] = useState(
     service?.duration_minutes?.toString() ?? "30",
   );
-  const [price, setPrice] = useState(service?.price?.toString() ?? "0");
+  const [price, setPrice] = useState(
+    service?.price?.toString() ?? "0",
+  );
   const [isActive, setIsActive] = useState(service?.is_active ?? true);
   const [imagePreview, setImagePreview] = useState<string | null>(
     getImageUrl(service?.image),
@@ -116,7 +120,7 @@ export function ServiceFormModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
       >
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -124,12 +128,12 @@ export function ServiceFormModal({
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ type: "spring", stiffness: 260, damping: 26 }}
           onClick={(e) => e.stopPropagation()}
-          className={`w-full max-w-md rounded-2xl p-6 max-h-[90vh] overflow-y-auto ${
+          className={`w-full max-w-md rounded-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${
             darkMode ? "bg-[#0c0a14]" : "bg-white"
           }`}
         >
           <div className="flex items-center justify-between mb-5">
-            <h3 className="text-lg font-black">
+            <h3 className="text-base sm:text-lg font-black">
               {isEdit ? "ویرایش خدمت" : "خدمت جدید"}
             </h3>
             <button
@@ -227,7 +231,7 @@ export function ServiceFormModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold mb-1.5 block">
                   مدت (دقیقه)
@@ -264,25 +268,27 @@ export function ServiceFormModal({
               <span className="text-sm font-bold">فعال باشد</span>
             </label>
 
-            {error && <p className="text-xs text-red-500 font-bold">{error}</p>}
+            {error && (
+              <p className="text-xs text-red-500 font-bold">{error}</p>
+            )}
 
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 disabled:opacity-50"
-              >
-                {loading ? "در حال ذخیره..." : isEdit ? "ذخیره" : "ایجاد"}
-              </button>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-2">
               <button
                 onClick={onClose}
-                className={`px-6 h-11 rounded-xl border font-bold text-sm ${
+                className={`h-11 px-6 rounded-xl border font-bold text-sm ${
                   darkMode
                     ? "border-white/10 hover:bg-white/5"
                     : "border-slate-200 hover:bg-slate-50"
                 }`}
               >
                 لغو
+              </button>
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex-1 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 disabled:opacity-50"
+              >
+                {loading ? "در حال ذخیره..." : isEdit ? "ذخیره" : "ایجاد"}
               </button>
             </div>
           </div>

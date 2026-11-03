@@ -9,7 +9,7 @@ export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin", "stats"],
     queryFn: fetchAdminStats,
-    staleTime: 2 * 60 * 1000,  
+    staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
   });
 
@@ -47,9 +47,11 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black mb-1">داشبورد</h2>
+        <h2 className="text-xl sm:text-2xl font-black mb-1">داشبورد</h2>
         <p
-          className={`text-sm ${darkMode ? "text-white/50" : "text-slate-500"}`}
+          className={`text-xs sm:text-sm ${
+            darkMode ? "text-white/50" : "text-slate-500"
+          }`}
         >
           نمای کلی کلینیک — روی هر کارت کلیک کنید تا جزئیات را ببینید
         </p>

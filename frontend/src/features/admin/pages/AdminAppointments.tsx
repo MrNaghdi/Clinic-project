@@ -77,11 +77,11 @@ export default function AdminAppointments() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black mb-1">نوبت‌ها</h2>
+          <h2 className="text-xl sm:text-2xl font-black mb-1">نوبت‌ها</h2>
           <p
-            className={`text-sm ${
+            className={`text-xs sm:text-sm ${
               darkMode ? "text-white/50" : "text-slate-500"
             }`}
           >
@@ -116,33 +116,35 @@ export default function AdminAppointments() {
           />
         </div>
 
-        <CustomSelect
-          value={statusFilter}
-          onChange={(v) => {
-            setStatusFilter(v);
-            setPage(1);
-          }}
-          options={STATUS_OPTIONS}
-          className="sm:w-44"
-        />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <CustomSelect
+            value={statusFilter}
+            onChange={(v) => {
+              setStatusFilter(v);
+              setPage(1);
+            }}
+            options={STATUS_OPTIONS}
+            className="w-full sm:w-44"
+          />
 
-        <button
-          onClick={() => {
-            setTodayOnly((t) => !t);
-            setPage(1);
-          }}
-          className={`inline-flex items-center gap-2 h-11 px-4 rounded-xl border text-sm font-bold transition-colors ${
-            todayOnly
-              ? "bg-brand-500 border-brand-500 text-white"
-              : darkMode
-              ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
-              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
-          }`}
-        >
-          <Calendar size={16} />
-          فقط امروز
-          {todayOnly && <X size={14} />}
-        </button>
+          <button
+            onClick={() => {
+              setTodayOnly((t) => !t);
+              setPage(1);
+            }}
+            className={`inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border text-sm font-bold transition-colors whitespace-nowrap ${
+              todayOnly
+                ? "bg-brand-500 border-brand-500 text-white"
+                : darkMode
+                ? "bg-white/5 border-white/10 text-white hover:bg-white/10"
+                : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+            }`}
+          >
+            <Calendar size={16} />
+            فقط امروز
+            {todayOnly && <X size={14} />}
+          </button>
+        </div>
       </div>
 
       <div
@@ -153,7 +155,7 @@ export default function AdminAppointments() {
         }`}
       >
         {isLoading && items.length === 0 ? (
-          <div className="p-6 space-y-3">
+          <div className="p-4 sm:p-6 space-y-3">
             {[...Array(5)].map((_, i) => (
               <div
                 key={i}
@@ -164,15 +166,21 @@ export default function AdminAppointments() {
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className={darkMode ? "text-white/50" : "text-slate-500"}>
+          <div className="p-8 sm:p-12 text-center">
+            <p
+              className={`text-sm ${
+                darkMode ? "text-white/50" : "text-slate-500"
+              }`}
+            >
               نوبتی یافت نشد
             </p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200/50 dark:divide-white/5">
             {items.map((a, i) => {
-              const customerImg = getImageUrl(a.customer?.profile_image);
+              const customerImg = getImageUrl(
+                a.customer?.profile_image,
+              );
               const specialistImg = getImageUrl(
                 a.specialist?.user?.profile_image,
               );
@@ -182,7 +190,7 @@ export default function AdminAppointments() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 transition-colors ${
+                  className={`flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-4 p-4 transition-colors ${
                     darkMode
                       ? "hover:bg-white/[0.02]"
                       : "hover:bg-slate-50/50"
@@ -205,24 +213,27 @@ export default function AdminAppointments() {
                       </p>
                       <p
                         className={`text-[11px] tabular-nums ${
-                          darkMode ? "text-white/50" : "text-slate-500"
+                          darkMode
+                            ? "text-white/50"
+                            : "text-slate-500"
                         }`}
                       >
-                        {a.start_time.slice(0, 5)} - {a.end_time.slice(0, 5)}
+                        {a.start_time.slice(0, 5)} -{" "}
+                        {a.end_time.slice(0, 5)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 lg:flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     {customerImg ? (
                       <img
                         src={customerImg}
                         alt=""
                         loading="lazy"
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-[10px] font-black">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-[10px] font-black shrink-0">
                         {a.customer?.first_name?.[0] ?? "?"}
                       </div>
                     )}
@@ -232,11 +243,14 @@ export default function AdminAppointments() {
                           darkMode ? "text-white" : "text-slate-900"
                         }`}
                       >
-                        {a.customer?.first_name} {a.customer?.last_name}
+                        {a.customer?.first_name}{" "}
+                        {a.customer?.last_name}
                       </p>
                       <p
                         className={`text-[10px] font-mono ${
-                          darkMode ? "text-white/40" : "text-slate-400"
+                          darkMode
+                            ? "text-white/40"
+                            : "text-slate-400"
                         }`}
                       >
                         {a.customer?.phone}
@@ -244,16 +258,16 @@ export default function AdminAppointments() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 lg:flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
                     {specialistImg ? (
                       <img
                         src={specialistImg}
                         alt=""
                         loading="lazy"
-                        className="w-8 h-8 rounded-full object-cover"
+                        className="w-8 h-8 rounded-full object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-white flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-white flex items-center justify-center shrink-0">
                         <Stethoscope size={12} />
                       </div>
                     )}
@@ -268,7 +282,9 @@ export default function AdminAppointments() {
                       </p>
                       <p
                         className={`text-[10px] truncate ${
-                          darkMode ? "text-white/40" : "text-slate-400"
+                          darkMode
+                            ? "text-white/40"
+                            : "text-slate-400"
                         }`}
                       >
                         {a.service?.name}
@@ -276,17 +292,22 @@ export default function AdminAppointments() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 lg:w-32">
-                    <CircleDollarSign size={14} className="text-accent-500" />
-                    <span className="text-xs font-bold tabular-nums">
-                      {new Intl.NumberFormat("fa-IR").format(a.price)}
-                    </span>
-                  </div>
+                  <div className="flex items-center justify-between lg:justify-start gap-3 lg:w-auto">
+                    <div className="flex items-center gap-1.5">
+                      <CircleDollarSign
+                        size={14}
+                        className="text-accent-500"
+                      />
+                      <span className="text-xs font-bold tabular-nums">
+                        {new Intl.NumberFormat("fa-IR").format(a.price)}
+                      </span>
+                    </div>
 
-                  <div className="lg:w-28">
                     <span
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold text-white"
-                      style={{ backgroundColor: STATUS_COLORS[a.status] }}
+                      style={{
+                        backgroundColor: STATUS_COLORS[a.status],
+                      }}
                     >
                       {STATUS_LABELS[a.status] ?? a.status}
                     </span>
@@ -299,12 +320,12 @@ export default function AdminAppointments() {
       </div>
 
       {pages > 1 && (
-        <div className="flex justify-center items-center gap-2">
+        <div className="flex justify-center items-center gap-1.5 sm:gap-2 flex-wrap">
           {[...Array(pages)].map((_, i) => (
             <button
               key={i}
               onClick={() => setPage(i + 1)}
-              className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors ${
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-xs sm:text-sm font-bold transition-colors ${
                 page === i + 1
                   ? "bg-gradient-to-r from-brand-500 to-accent-500 text-white"
                   : darkMode

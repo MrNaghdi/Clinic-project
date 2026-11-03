@@ -27,7 +27,11 @@ export default function AdminAdmins() {
   });
 
   const { data: customersData } = useQuery({
-    queryKey: ["admin", "users", { search: promoteSearch, role: "customer" }],
+    queryKey: [
+      "admin",
+      "users",
+      { search: promoteSearch, role: "customer" },
+    ],
     queryFn: () =>
       fetchAdminUsers({
         search: promoteSearch || undefined,
@@ -41,7 +45,10 @@ export default function AdminAdmins() {
   const customers = customersData?.items ?? [];
 
   const handlePromote = async (userId: number, name: string) => {
-    if (!window.confirm(`آیا مطمئنی می‌خوای ${name} رو ادمین کنی؟`)) return;
+    if (
+      !window.confirm(`آیا مطمئنی می‌خوای ${name} رو ادمین کنی؟`)
+    )
+      return;
 
     setPromoting(true);
     try {
@@ -86,11 +93,13 @@ export default function AdminAdmins() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-black mb-1">مدیریت ادمین‌ها</h2>
+          <h2 className="text-xl sm:text-2xl font-black mb-1">
+            مدیریت ادمین‌ها
+          </h2>
           <p
-            className={`text-sm ${
+            className={`text-xs sm:text-sm ${
               darkMode ? "text-white/50" : "text-slate-500"
             }`}
           >
@@ -99,7 +108,7 @@ export default function AdminAdmins() {
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90"
+          className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 h-11 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white font-bold text-sm shadow-lg shadow-brand-500/25 hover:opacity-90 w-full sm:w-auto"
         >
           <UserPlus size={16} />
           ارتقا به ادمین
@@ -134,7 +143,7 @@ export default function AdminAdmins() {
         }`}
       >
         {isLoading ? (
-          <div className="p-6 space-y-3">
+          <div className="p-4 sm:p-6 space-y-3">
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
@@ -145,8 +154,12 @@ export default function AdminAdmins() {
             ))}
           </div>
         ) : filteredAdmins.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className={darkMode ? "text-white/50" : "text-slate-500"}>
+          <div className="p-8 sm:p-12 text-center">
+            <p
+              className={`text-sm ${
+                darkMode ? "text-white/50" : "text-slate-500"
+              }`}
+            >
               ادمینی یافت نشد
             </p>
           </div>
@@ -161,51 +174,57 @@ export default function AdminAdmins() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-4 p-4 transition-colors hover:bg-white/[0.02]"
+                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 transition-colors hover:bg-white/[0.02]"
                 >
-                  {img ? (
-                    <img
-                      src={img}
-                      alt=""
-                      loading="lazy"
-                      className="w-11 h-11 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div
-                      className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-black ${
-                        isSuper
-                          ? "bg-gradient-to-br from-amber-400 to-orange-500"
-                          : "bg-gradient-to-br from-brand-500 to-accent-500"
-                      }`}
-                    >
-                      {isSuper ? <Crown size={18} /> : a.first_name?.[0] ?? "?"}
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-bold truncate">
-                        {a.first_name} {a.last_name}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {img ? (
+                      <img
+                        src={img}
+                        alt=""
+                        loading="lazy"
+                        className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white font-black shrink-0 ${
+                          isSuper
+                            ? "bg-gradient-to-br from-amber-400 to-orange-500"
+                            : "bg-gradient-to-br from-brand-500 to-accent-500"
+                        }`}
+                      >
+                        {isSuper ? (
+                          <Crown size={16} />
+                        ) : (
+                          a.first_name?.[0] ?? "?"
+                        )}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-bold text-sm truncate">
+                          {a.first_name} {a.last_name}
+                        </p>
+                        {isSuper && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 text-[10px] font-bold shrink-0">
+                            <Crown size={10} />
+                            سوپر ادمین
+                          </span>
+                        )}
+                      </div>
+                      <p
+                        className={`text-xs font-mono tabular-nums ${
+                          darkMode ? "text-white/40" : "text-slate-400"
+                        }`}
+                      >
+                        {a.phone}
                       </p>
-                      {isSuper && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 text-[10px] font-bold">
-                          <Crown size={10} />
-                          سوپر ادمین
-                        </span>
-                      )}
                     </div>
-                    <p
-                      className={`text-xs font-mono tabular-nums ${
-                        darkMode ? "text-white/40" : "text-slate-400"
-                      }`}
-                    >
-                      {a.phone}
-                    </p>
                   </div>
 
                   {!isSuper && (
                     <button
                       onClick={() => handleDemote(a)}
-                      className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-red-500/30 text-red-500 text-xs font-bold hover:bg-red-500/10"
+                      className="inline-flex items-center justify-center gap-1.5 px-3 h-9 rounded-lg border border-red-500/30 text-red-500 text-xs font-bold hover:bg-red-500/10 w-full sm:w-auto"
                     >
                       <UserMinus size={12} />
                       لغو ادمینی
@@ -220,7 +239,7 @@ export default function AdminAdmins() {
 
       {modalOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4"
           onClick={() => {
             setModalOpen(false);
             setPromoteSearch("");
@@ -230,12 +249,12 @@ export default function AdminAdmins() {
             initial={{ opacity: 0, y: 24, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             onClick={(e) => e.stopPropagation()}
-            className={`w-full max-w-lg rounded-2xl p-6 ${
+            className={`w-full max-w-lg rounded-2xl p-4 sm:p-6 max-h-[90vh] overflow-y-auto ${
               darkMode ? "bg-[#0c0a14]" : "bg-white"
             }`}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-black flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-black flex items-center gap-2">
                 <Shield size={18} className="text-brand-500" />
                 ارتقا به ادمین
               </h3>
@@ -285,7 +304,9 @@ export default function AdminAdmins() {
                       }
                       disabled={promoting}
                       className={`w-full flex items-center gap-3 p-2.5 rounded-lg text-right transition-colors ${
-                        darkMode ? "hover:bg-white/5" : "hover:bg-slate-50"
+                        darkMode
+                          ? "hover:bg-white/5"
+                          : "hover:bg-slate-50"
                       } disabled:opacity-50`}
                     >
                       {uimg ? (
@@ -293,15 +314,15 @@ export default function AdminAdmins() {
                           src={uimg}
                           alt=""
                           loading="lazy"
-                          className="w-9 h-9 rounded-full object-cover"
+                          className="w-9 h-9 rounded-full object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-xs font-black">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-xs font-black shrink-0">
                           {u.first_name?.[0] ?? "?"}
                         </div>
                       )}
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold truncate">
                           {u.first_name} {u.last_name}
                         </p>
                         <p
@@ -312,7 +333,10 @@ export default function AdminAdmins() {
                           {u.phone}
                         </p>
                       </div>
-                      <UserPlus size={14} className="text-brand-500" />
+                      <UserPlus
+                        size={14}
+                        className="text-brand-500 shrink-0"
+                      />
                     </button>
                   );
                 })

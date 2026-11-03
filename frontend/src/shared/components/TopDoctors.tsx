@@ -9,10 +9,12 @@ import {
   Star,
   Award,
 } from "lucide-react";
-import doctor1 from "../../assets/image/doctor1.png";
+import { useQuery } from "@tanstack/react-query";
 import { useDarkMode } from "../hook/useDarkMode";
 import { Container } from "./ui/Container";
 import { RevealOnScroll } from "./animations/RevealOnScroll";
+import { getImageUrl } from "../utils/getImageUrl";
+import axiosInstance from "../api/axiosInstance";
 
 interface SpecialistEntity {
   id: number;
@@ -36,81 +38,10 @@ const AUTOPLAY_MS = 9000;
 const BRAND = "#1E3A8A";
 const BRAND_2 = "#38BDF8";
 
-const TEST_SPECIALISTS: SpecialistEntity[] = [
-  {
-    id: 1,
-    user: { first_name: "سارا", last_name: "احمدی" },
-    user_id: 1,
-    bio: "متخصص پوست، مو و زیبایی با بیش از ۱۲ سال تجربه در لیزر، تزریق ژل و بوتاکس. دانش‌آموخته دانشگاه تهران و دارای بورد تخصصی پوست.",
-    status: "approved",
-    is_active: true,
-    years_of_experience: 12,
-    rating: 4.9,
-    services: [
-      { id: 1, name: "پوست و زیبایی" },
-      { id: 2, name: "لیزر" },
-      { id: 3, name: "تزریق ژل" },
-    ],
-  },
-  {
-    id: 2,
-    user: { first_name: "علی", last_name: "رضایی" },
-    user_id: 2,
-    bio: "متخصص بیماری‌های پوست و مو با تمرکز بر درمان آکنه، لک و ریزش مو. دارای بورد تخصصی پوست و عضو انجمن متخصصان پوست ایران.",
-    status: "approved",
-    is_active: true,
-    years_of_experience: 9,
-    rating: 4.8,
-    services: [
-      { id: 1, name: "پوست و مو" },
-      { id: 2, name: "درمان آکنه" },
-    ],
-  },
-  {
-    id: 3,
-    user: { first_name: "مریم", last_name: "حسینی" },
-    user_id: 3,
-    bio: "متخصص لیزر و جوانسازی پوست با مدارک بین‌المللی. متخصص در هایفوتراپی، میکرونیدلینگ و درمان‌های ضدپیری با دستگاه‌های نسل جدید.",
-    status: "approved",
-    is_active: true,
-    years_of_experience: 10,
-    rating: 4.9,
-    services: [
-      { id: 2, name: "لیزر" },
-      { id: 4, name: "هایفوتراپی" },
-      { id: 5, name: "میکرونیدلینگ" },
-    ],
-  },
-  {
-    id: 4,
-    user: { first_name: "محمد", last_name: "کریمی" },
-    user_id: 4,
-    bio: "جراح زیبایی با ۱۵ سال سابقه در جراحی بینی، پلک و لیفت. عضو انجمن جراحان زیبایی ایران و دارای مدرک بورد جراحی.",
-    status: "approved",
-    is_active: true,
-    years_of_experience: 15,
-    rating: 4.7,
-    services: [
-      { id: 6, name: "جراحی زیبایی" },
-      { id: 7, name: "لیفت" },
-    ],
-  },
-  {
-    id: 5,
-    user: { first_name: "نگار", last_name: "موسوی" },
-    user_id: 5,
-    bio: "متخصص تزریقات زیبایی با رویکرد طبیعی. ارائه‌دهنده خدمات ژل، بوتاکس و مزوتراپی با بالاترین استانداردهای بین‌المللی.",
-    status: "approved",
-    is_active: true,
-    years_of_experience: 8,
-    rating: 4.8,
-    services: [
-      { id: 3, name: "تزریق ژل" },
-      { id: 8, name: "بوتاکس" },
-      { id: 9, name: "مزوتراپی" },
-    ],
-  },
-];
+async function fetchSpecialists(): Promise<SpecialistEntity[]> {
+  const { data } = await axiosInstance.get("/specialists");
+  return data;
+}
 
 const mapSpecialist = (s: SpecialistEntity) => {
   const fullName =
@@ -120,7 +51,7 @@ const mapSpecialist = (s: SpecialistEntity) => {
   return {
     id: s.id,
     name: fullName,
-    image: doctor1 as string,
+    image: getImageUrl(s.user?.profile_image ?? null),
     initial: s.user?.first_name?.[0] ?? "?",
     bio: s.bio ?? "بیوگرافی این متخصص هنوز ثبت نشده است.",
     services: s.services?.map((sv) => sv.name) ?? [],
@@ -138,8 +69,11 @@ const TopDoctors = () => {
   const { darkMode } = useDarkMode();
   const reduceMotion = useReducedMotion();
 
-  const specialists = TEST_SPECIALISTS;
-  const isLoading = false;
+  const { data: specialists = [], isLoading } = useQuery({
+    queryKey: ["specialists"],
+    queryFn: fetchSpecialists,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const approved = specialists.filter(
     (s) => s.status === "approved" && s.is_active,
@@ -392,7 +326,6 @@ const TopDoctors = () => {
                 >
                   <div className="lg:col-span-5">
                     <div className="relative max-w-[340px] mx-auto lg:max-w-none">
-                
                       <div
                         className="absolute -inset-5 rounded-[2rem] blur-3xl opacity-30 pointer-events-none"
                         style={{
@@ -487,7 +420,6 @@ const TopDoctors = () => {
                     </div>
                   </div>
 
-                  {/* ستون اطلاعات */}
                   <div className="lg:col-span-7">
                     {doctor.services.length > 0 && (
                       <motion.div
@@ -613,8 +545,12 @@ const TopDoctors = () => {
                             animation: reduceMotion
                               ? "none"
                               : `td-progress ${AUTOPLAY_MS}ms linear forwards`,
-                            animationPlayState: isPaused ? "paused" : "running",
-                            transform: reduceMotion ? "scaleX(1)" : undefined,
+                            animationPlayState: isPaused
+                              ? "paused"
+                              : "running",
+                            transform: reduceMotion
+                              ? "scaleX(1)"
+                              : undefined,
                           }}
                         />
                       )}
@@ -622,9 +558,7 @@ const TopDoctors = () => {
                   );
                 })}
               </div>
-              <span
-                className={`text-xs font-bold tabular-nums ${textMuted}`}
-              >
+              <span className={`text-xs font-bold tabular-nums ${textMuted}`}>
                 {toFa(activeIndex + 1)} / {toFa(total)}
               </span>
             </div>

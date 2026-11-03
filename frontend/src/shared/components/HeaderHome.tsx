@@ -4,6 +4,7 @@ import logo from "../../assets/image/logo.png";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDarkMode } from "../hook/useDarkMode";
 import { homeTheme } from "../theme";
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 
 const navItems = [
   { label: "خانه", to: "/" },
@@ -30,12 +31,20 @@ export default function HeaderHome() {
   const navigate = useNavigate();
   const { darkMode } = useDarkMode();
   const t = homeTheme(darkMode);
+  const { user } = useCurrentUser();
 
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchWrapRef = useRef<HTMLDivElement>(null);
 
   const hasToken =
     typeof window !== "undefined" && !!localStorage.getItem("token");
+
+  const dashboardPath = (() => {
+    if (!user) return "/profile";
+    if (user.role === "admin" || user.role === "super_admin") return "/admin";
+    if (user.role === "specialist") return "/specialist";
+    return "/profile";
+  })();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
@@ -104,9 +113,7 @@ export default function HeaderHome() {
     >
       <div className="max-w-[1450px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 lg:h-20">
-          {/* Logo */}
           <Link to="/" className="shrink-0 group">
-            
             <div className="flex items-center gap-2.5">
               <img
                 src={logo}
@@ -128,7 +135,6 @@ export default function HeaderHome() {
             </div>
           </Link>
 
-          {/* Nav */}
           <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
               <NavLink
@@ -152,11 +158,10 @@ export default function HeaderHome() {
             ))}
           </nav>
 
-          {/* Actions */}
           <div className="flex items-center gap-2">
             {hasToken ? (
               <Link
-                to="/profile"
+                to={dashboardPath}
                 className={`hidden sm:flex items-center gap-2 px-4 h-10 rounded-full text-sm font-semibold transition-all ${
                   darkMode
                     ? "bg-white text-gray-900 hover:bg-gray-100"
@@ -224,7 +229,6 @@ export default function HeaderHome() {
         </div>
       </div>
 
-      {/* Search Panel */}
       <div
         ref={searchWrapRef}
         className={`hidden sm:block absolute top-full left-0 w-full transition-all duration-300 ease-out overflow-hidden ${
@@ -318,7 +322,6 @@ export default function HeaderHome() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       <div
         className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out border-t ${
           isMenuOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
@@ -376,7 +379,7 @@ export default function HeaderHome() {
           >
             {hasToken ? (
               <Link
-                to="/profile"
+                to={dashboardPath}
                 onClick={() => setIsMenuOpen(false)}
                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold transition-colors ${
                   darkMode ? "bg-white text-gray-900" : "bg-gray-900 text-white"

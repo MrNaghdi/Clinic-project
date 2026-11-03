@@ -7,6 +7,7 @@ import { Button } from "../ui/Button";
 import { Logo } from "../ui/Logo";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { cn } from "../../../lib/utils";
+import { useCurrentUser } from "../../../features/auth/hooks/useCurrentUser";
 
 const navItems = [
   { label: "خانه", to: "/" },
@@ -19,8 +20,17 @@ const navItems = [
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { user } = useCurrentUser();
+
   const hasToken =
     typeof window !== "undefined" && !!localStorage.getItem("token");
+
+  const dashboardPath = (() => {
+    if (!user) return "/profile";
+    if (user.role === "admin" || user.role === "super_admin") return "/admin";
+    if (user.role === "specialist") return "/specialist";
+    return "/profile";
+  })();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -50,7 +60,6 @@ export function Navbar() {
       >
         <Container>
           <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
             <Logo />
 
             <nav className="hidden lg:flex items-center gap-1">
@@ -88,7 +97,6 @@ export function Navbar() {
               ))}
             </nav>
 
-            {/* Actions */}
             <div className="flex items-center gap-2">
               <ThemeToggle />
 
@@ -109,7 +117,7 @@ export function Navbar() {
               </Button>
 
               {hasToken ? (
-                <Link to="/profile" className="hidden sm:block">
+                <Link to={dashboardPath} className="hidden sm:block">
                   <Button
                     variant="brand"
                     size="sm"
@@ -120,7 +128,11 @@ export function Navbar() {
                 </Link>
               ) : (
                 <Link to="/login" className="hidden sm:block">
-                  <Button variant="brand" size="sm" icon={<LogIn size={16} />}>
+                  <Button
+                    variant="brand"
+                    size="sm"
+                    icon={<LogIn size={16} />}
+                  >
                     ورود
                   </Button>
                 </Link>
@@ -138,7 +150,6 @@ export function Navbar() {
         </Container>
       </motion.header>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -180,7 +191,7 @@ export function Navbar() {
                 className="mt-6 pt-6 border-t border-gray-200 dark:border-white/10"
               >
                 {hasToken ? (
-                  <Link to="/profile" onClick={() => setOpen(false)}>
+                  <Link to={dashboardPath} onClick={() => setOpen(false)}>
                     <Button
                       variant="brand"
                       size="lg"

@@ -120,6 +120,16 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/specialists/:specialistId/book"
+          element={
+            <>
+              <Navbar />
+              <BookingPage />
+              <Footer />
+            </>
+          }
+        />
 
         {/* ═══════ Auth ═══════ */}
         <Route path="/login" element={<LoginPage />} />
