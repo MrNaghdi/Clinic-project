@@ -7,6 +7,7 @@ import {
   Scissors,
   ShieldCheck,
   CalendarDays,
+  Star,
   ArrowRight,
   Menu,
   X,
@@ -24,6 +25,7 @@ const baseLinks = [
     icon: CalendarDays,
     end: false,
   },
+  { to: "/admin/reviews", label: "نظرات", icon: Star, end: false },
 ];
 
 const superAdminLinks = [
@@ -102,7 +104,6 @@ export function AdminLayout() {
         darkMode ? "bg-[#08060f] text-white" : "bg-[#faf9f6] text-slate-900"
       }`}
     >
-      {/* دسکتاپ: سایدبار ثابت */}
       <aside
         className={`hidden lg:flex w-64 shrink-0 border-l p-5 flex-col ${
           darkMode
@@ -113,7 +114,6 @@ export function AdminLayout() {
         {SidebarContent}
       </aside>
 
-      {/* موبایل: drawer */}
       <AnimatePresence>
         {sidebarOpen && (
           <>
@@ -142,7 +142,6 @@ export function AdminLayout() {
       </AnimatePresence>
 
       <main className="flex-1 min-w-0">
-        {/* هدر موبایل */}
         <div
           className={`lg:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 border-b backdrop-blur-md ${
             darkMode

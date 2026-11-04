@@ -16,10 +16,16 @@ export interface AppointmentCustomer {
   profile_image: string | null;
 }
 
+export interface AppointmentSpecialistUser {
+  first_name: string | null;
+  last_name: string | null;
+  profile_image: string | null;
+}
+
 export interface AppointmentSpecialist {
   id: number;
-  name: string;
-  profile_image: string | null;
+  user_id: number;
+  user: AppointmentSpecialistUser | null;
 }
 
 export interface AppointmentService {
@@ -29,6 +35,9 @@ export interface AppointmentService {
 
 export interface Appointment {
   id: number;
+  customer_id: number;
+  specialist_id: number;
+  service_id: number;
   status: AppointmentStatus;
   date: string;
   start_time: string;
@@ -38,13 +47,14 @@ export interface Appointment {
   notes: string | null;
   cancel_reason: string | null;
   cancelled_at: string | null;
-  customer?: AppointmentCustomer;
-  specialist?: AppointmentSpecialist;
-  service?: AppointmentService;
+  customer?: AppointmentCustomer | null;
+  specialist?: AppointmentSpecialist | null;
+  service?: AppointmentService | null;
   created_at: string;
+  updated_at: string;
 }
 
-export interface CreateAppointmentPayload  {
+export interface CreateAppointmentPayload {
   specialist_id: number;
   service_id: number;
   date: string;
@@ -70,6 +80,7 @@ export interface DayAvailability {
   slots: string[];
   available_count: number;
 }
+
 export interface UserStats {
   upcoming_count: number;
   completed_count: number;
@@ -102,38 +113,64 @@ export interface SpecialistStats {
     customer_phone: string;
   } | null;
 }
+
 export interface WeekAvailabilityResponse {
   days: DayAvailability[];
 }
 
-export async function createAppointment(dto: CreateAppointmentPayload): Promise<Appointment> {
-  const response = await axiosInstance.post<Appointment>("/appointments", dto);
+export async function createAppointment(
+  dto: CreateAppointmentPayload,
+): Promise<Appointment> {
+  const response = await axiosInstance.post<Appointment>(
+    "/appointments",
+    dto,
+  );
   return response.data;
 }
 
-export async function findMyAppointments(status?: AppointmentStatus): Promise<Appointment[]> {
-  const response = await axiosInstance.get<Appointment[]>("/appointments/my", {
-    params: status ? { status } : undefined,
-  });
+export async function findMyAppointments(
+  status?: AppointmentStatus,
+): Promise<Appointment[]> {
+  const response = await axiosInstance.get<Appointment[]>(
+    "/appointments/my",
+    {
+      params: status ? { status } : undefined,
+    },
+  );
   return response.data;
 }
 
 export async function findAppointment(id: number): Promise<Appointment> {
-  const response = await axiosInstance.get<Appointment>(`/appointments/${id}`);
+  const response = await axiosInstance.get<Appointment>(
+    `/appointments/${id}`,
+  );
   return response.data;
 }
 
-export async function cancelAppointment(id: number, reason?: string): Promise<Appointment> {
-  const response = await axiosInstance.patch<Appointment>(`/appointments/${id}/cancel`, { reason });
+export async function cancelAppointment(
+  id: number,
+  reason?: string,
+): Promise<Appointment> {
+  const response = await axiosInstance.patch<Appointment>(
+    `/appointments/${id}/cancel`,
+    { reason },
+  );
   return response.data;
 }
 
-export async function getAvailableSlots(params: AvailableSlotsParams): Promise<string[]> {
-  const response = await axiosInstance.get<string[]>("/appointments/available", { params });
+export async function getAvailableSlots(
+  params: AvailableSlotsParams,
+): Promise<string[]> {
+  const response = await axiosInstance.get<string[]>(
+    "/appointments/available",
+    { params },
+  );
   return response.data;
 }
 
-export async function getWeekAvailability(params: WeekAvailabilityParams): Promise<WeekAvailabilityResponse> {
+export async function getWeekAvailability(
+  params: WeekAvailabilityParams,
+): Promise<WeekAvailabilityResponse> {
   const response = await axiosInstance.get<WeekAvailabilityResponse>(
     "/appointments/week-availability",
     { params },
@@ -142,7 +179,9 @@ export async function getWeekAvailability(params: WeekAvailabilityParams): Promi
 }
 
 export async function getUserStats(): Promise<UserStats> {
-  const response = await axiosInstance.get<UserStats>("/appointments/stats/user");
+  const response = await axiosInstance.get<UserStats>(
+    "/appointments/stats/user",
+  );
   return response.data;
 }
 

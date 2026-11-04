@@ -14,6 +14,9 @@ interface SpecialistStepProps {
   onBack: () => void;
 }
 
+const toFa = (n: number | string) =>
+  String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
 export function SpecialistStep({
   service,
   selectedId,
@@ -83,6 +86,9 @@ export function SpecialistStep({
               const isSelected = selectedId === specialist.id;
               const fullName = `${specialist.user?.first_name ?? ""} ${specialist.user?.last_name ?? ""}`.trim();
               const imageUrl = getImageUrl(specialist.user?.profile_image ?? null);
+              const rating = Number(specialist.rating ?? 0);
+              const reviewCount = Number(specialist.review_count ?? 0);
+              const hasReviews = reviewCount > 0;
 
               return (
                 <motion.button
@@ -147,11 +153,24 @@ export function SpecialistStep({
                         .join(" · ")}
                     </p>
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <div className="flex items-center gap-0.5 text-yellow-400">
-                        <Star size={14} fill="currentColor" />
-                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300 mr-0.5">
-                          5.0
+                      <div className="flex items-center gap-1">
+                        <Star
+                          size={14}
+                          className={
+                            hasReviews
+                              ? "text-yellow-400"
+                              : "text-gray-300 dark:text-gray-600"
+                          }
+                          fill={hasReviews ? "currentColor" : "none"}
+                        />
+                        <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                          {hasReviews ? rating.toFixed(1) : "—"}
                         </span>
+                        {hasReviews && (
+                          <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                            ({toFa(reviewCount)})
+                          </span>
+                        )}
                       </div>
                       <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
                       <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">

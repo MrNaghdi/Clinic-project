@@ -1,249 +1,249 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, CheckCircle2, Loader2, Phone } from "lucide-react";
-import axiosInstance from "../../../shared/api/axiosInstance";
+import { motion } from "framer-motion";
 import {
-  AppointmentStatus,
-  type Appointment,
-} from "../../booking/api/booking.api";
-import { getJalaliInfo } from "../../booking/utils/date";
+  Calendar,
+  Clock,
+  User,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+} from "lucide-react";
+import axiosInstance from "../../../shared/api/axiosInstance";
 
-async function findSpecialistAppointments(
-  status?: AppointmentStatus,
-): Promise<Appointment[]> {
-  const res = await axiosInstance.get<Appointment[]>(
-    "/appointments/specialist",
-    { params: status ? { status } : undefined },
-  );
-  return res.data;
+interface SpecialistAppointment {
+  id: number;
+  date: string;
+  start_time: string;
+  end_time: string;
+  status: "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
+  price: number;
+  notes: string | null;
+  customer: {
+    id: number;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string;
+    profile_image: string | null;
+  } | null;
+  service: { id: number; name: string } | null;
 }
 
-async function confirmAppointment(id: number): Promise<Appointment> {
-  const res = await axiosInstance.patch<Appointment>(
-    `/appointments/${id}/confirm`,
-  );
-  return res.data;
-}
-
-async function completeAppointment(id: number): Promise<Appointment> {
-  const res = await axiosInstance.patch<Appointment>(
-    `/appointments/${id}/complete`,
-  );
-  return res.data;
-}
-
-const STATUS_CONFIG = {
-  [AppointmentStatus.Pending]: {
-    label: "در انتظار تایید",
-    className:
-      "bg-yellow-50 dark:bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-200",
-  },
-  [AppointmentStatus.Confirmed]: {
-    label: "تایید‌شده",
-    className:
-      "bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-200",
-  },
-  [AppointmentStatus.Completed]: {
-    label: "انجام‌شده",
-    className:
-      "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-200",
-  },
-  [AppointmentStatus.Cancelled]: {
-    label: "لغو‌شده",
-    className:
-      "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 border-red-200",
-  },
-  [AppointmentStatus.NoShow]: {
-    label: "عدم حضور",
-    className:
-      "bg-gray-50 dark:bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-200",
-  },
+const STATUS_LABELS: Record<string, string> = {
+  pending: "در انتظار",
+  confirmed: "تأیید شده",
+  completed: "تکمیل شده",
+  cancelled: "لغو شده",
+  no_show: "عدم حضور",
 };
 
-const TABS = [
-  { value: AppointmentStatus.Pending, label: "در انتظار" },
-  { value: AppointmentStatus.Confirmed, label: "تایید‌شده" },
-  { value: AppointmentStatus.Completed, label: "انجام‌شده" },
-  { value: "all", label: "همه" },
-];
+const STATUS_CLASSES: Record<string, string> = {
+  pending: "bg-yellow-500/15 text-yellow-600",
+  confirmed: "bg-green-500/15 text-green-600",
+  completed: "bg-blue-500/15 text-blue-600",
+  cancelled: "bg-red-500/15 text-red-600",
+  no_show: "bg-gray-500/15 text-gray-600",
+};
 
 export default function SpecialistAppointmentsPage() {
-  const [activeTab, setActiveTab] = useState<string>(AppointmentStatus.Pending);
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState<string>("all");
 
-  const { data: appointments, isLoading } = useQuery({
-    queryKey: ["appointments", "specialist", activeTab],
-    queryFn: () =>
-      findSpecialistAppointments(
-        activeTab === "all" ? undefined : (activeTab as AppointmentStatus),
-      ),
+  const { data: appointments = [], isLoading } = useQuery({
+    queryKey: ["specialist-appointments", tab],
+    queryFn: async () => {
+      const params = tab !== "all" ? { status: tab } : {};
+      const { data } = await axiosInstance.get("/appointments/specialist", {
+        params,
+      });
+      return data as SpecialistAppointment[];
+    },
+    staleTime: 1 * 60 * 1000,
   });
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({
-      queryKey: ["appointments", "specialist"],
-    });
-  };
-
   const confirmMutation = useMutation({
-    mutationFn: confirmAppointment,
-    onSuccess: invalidate,
+    mutationFn: (id: number) =>
+      axiosInstance.patch(`/appointments/${id}/confirm`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["specialist-appointments"],
+      });
+    },
   });
 
   const completeMutation = useMutation({
-    mutationFn: completeAppointment,
-    onSuccess: invalidate,
+    mutationFn: (id: number) =>
+      axiosInstance.patch(`/appointments/${id}/complete`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["specialist-appointments"],
+      });
+    },
   });
 
+  const cancelMutation = useMutation({
+    mutationFn: (id: number) =>
+      axiosInstance.delete(`/appointments/${id}`, {
+        data: { reason: "لغو توسط متخصص" },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["specialist-appointments"],
+      });
+    },
+  });
+
+  const TABS = [
+    { value: "all", label: "همه" },
+    { value: "pending", label: "در انتظار" },
+    { value: "confirmed", label: "تأیید شده" },
+    { value: "completed", label: "تکمیل شده" },
+    { value: "cancelled", label: "لغو شده" },
+  ];
+
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-1">
-          نوبت‌های من
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-black text-gray-900 dark:text-white mb-1">
+          نوبت‌ها
         </h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">
-          مدیریت نوبت‌های رزرو شده برای شما
+          مدیریت نوبت‌های بیماران
         </p>
       </div>
 
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-        {TABS.map((tab) => (
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {TABS.map((t) => (
           <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
+            key={t.value}
+            onClick={() => setTab(t.value)}
             className={`px-4 h-9 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab.value
+              tab === t.value
                 ? "bg-gray-900 dark:bg-white text-white dark:text-gray-900"
                 : "bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/10"
             }`}
           >
-            {tab.label}
+            {t.label}
           </button>
         ))}
       </div>
 
-      {isLoading && (
+      {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="animate-spin text-brand-500" size={40} />
         </div>
-      )}
-
-      {!isLoading && (!appointments || appointments.length === 0) && (
-        <div className="rounded-3xl border-2 border-dashed border-gray-300 dark:border-white/10 p-12 lg:p-20 text-center">
+      ) : appointments.length === 0 ? (
+        <div className="rounded-3xl border-2 border-dashed border-gray-300 dark:border-white/10 p-12 text-center">
           <div className="w-20 h-20 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto mb-6">
             <Calendar size={36} />
           </div>
-          <h3 className="text-xl font-black text-gray-900 dark:text-white mb-3">
+          <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">
             نوبتی وجود ندارد
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            نوبتی با این وضعیت وجود ندارد
-          </p>
         </div>
-      )}
-
-      {!isLoading && appointments && appointments.length > 0 && (
+      ) : (
         <div className="flex flex-col gap-3">
-          <AnimatePresence>
-            {appointments.map((apt, index) => {
-              const status = STATUS_CONFIG[apt.status];
-              const jalali = getJalaliInfo(apt.date);
-              const canConfirm = apt.status === AppointmentStatus.Pending;
-              const canComplete = apt.status === AppointmentStatus.Confirmed;
-
-              return (
-                <motion.div
-                  key={apt.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ delay: index * 0.03 }}
-                  className="rounded-2xl border bg-white dark:bg-ink-light border-gray-200 dark:border-white/10 p-5 hover:shadow-lg transition-all"
+          {appointments.map((apt, i) => (
+            <motion.div
+              key={apt.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.03 }}
+              className="rounded-2xl border bg-white dark:bg-ink-light border-gray-200 dark:border-white/10 p-5"
+            >
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h3 className="font-black text-gray-900 dark:text-white">
+                    {apt.service?.name}
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 tabular-nums">
+                    {new Intl.DateTimeFormat("fa-IR", {
+                      weekday: "long",
+                      month: "long",
+                      day: "numeric",
+                    }).format(new Date(apt.date))}
+                    {" — "}
+                    {apt.start_time?.slice(0, 5)} -{" "}
+                    {apt.end_time?.slice(0, 5)}
+                  </p>
+                </div>
+                <span
+                  className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                    STATUS_CLASSES[apt.status] ?? ""
+                  }`}
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      {apt.customer?.profile_image ? (
-                        <img
-                          src={`http://localhost:3000${apt.customer.profile_image}`}
-                          alt={apt.customer.first_name || ""}
-                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 dark:border-white/10 shrink-0"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center font-bold shrink-0">
-                          {apt.customer?.first_name?.[0]}
-                          {apt.customer?.last_name?.[0]}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-bold text-gray-900 dark:text-white truncate">
-                          {apt.customer?.first_name} {apt.customer?.last_name}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
-                          <Phone size={12} />
-                          <span dir="ltr">{apt.customer?.phone}</span>
-                        </p>
-                      </div>
-                    </div>
+                  {STATUS_LABELS[apt.status] ?? apt.status}
+                </span>
+              </div>
 
-                    <div className="flex flex-col gap-1.5 flex-1 text-sm">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border w-fit ${status.className}`}
-                      >
-                        {status.label}
-                      </span>
-                      <p className="text-gray-700 dark:text-gray-300 font-medium">
-                        {apt.service?.name}
-                      </p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <Calendar size={12} />
-                          {jalali.weekdayFull} {jalali.fullDate}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock size={12} />
-                          {apt.start_time.slice(0, 5)} -{" "}
-                          {apt.end_time.slice(0, 5)}
-                        </span>
-                      </div>
-                    </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                <User size={14} className="text-brand-500" />
+                <span className="font-bold">
+                  {apt.customer?.first_name} {apt.customer?.last_name}
+                </span>
+                {apt.customer?.phone && (
+                  <span className="text-xs font-mono text-gray-400">
+                    {apt.customer.phone}
+                  </span>
+                )}
+              </div>
 
-                    <div className="text-left shrink-0">
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        قیمت
-                      </p>
-                      <p className="text-sm font-bold text-brand-500">
-                        {apt.price.toLocaleString("fa-IR")} تومان
-                      </p>
-                    </div>
+              {apt.notes && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30">
+                  <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 mb-1 flex items-center gap-1">
+                    <AlertCircle size={12} />
+                    توضیحات بیمار
+                  </p>
+                  <p className="text-sm text-amber-900 dark:text-amber-300 leading-7">
+                    {apt.notes}
+                  </p>
+                </div>
+              )}
 
-                    <div className="flex gap-2 shrink-0">
-                      {canConfirm && (
-                        <button
-                          onClick={() => confirmMutation.mutate(apt.id)}
-                          disabled={confirmMutation.isPending}
-                          className="inline-flex items-center gap-1.5 px-4 h-10 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors disabled:opacity-50"
-                        >
-                          <CheckCircle2 size={16} />
-                          تایید
-                        </button>
-                      )}
-                      {canComplete && (
-                        <button
-                          onClick={() => completeMutation.mutate(apt.id)}
-                          disabled={completeMutation.isPending}
-                          className="inline-flex items-center gap-1.5 px-4 h-10 rounded-xl bg-blue-500 text-white text-sm font-semibold hover:bg-blue-600 transition-colors disabled:opacity-50"
-                        >
-                          <CheckCircle2 size={16} />
-                          انجام شد
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </AnimatePresence>
+              {apt.status === "pending" && (
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => confirmMutation.mutate(apt.id)}
+                    disabled={confirmMutation.isPending}
+                    className="flex-1 h-10 rounded-xl bg-green-500 text-white text-sm font-bold hover:bg-green-600 disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                  >
+                    <CheckCircle2 size={14} />
+                    تأیید
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm("این نوبت لغو شود؟")) {
+                        cancelMutation.mutate(apt.id);
+                      }
+                    }}
+                    disabled={cancelMutation.isPending}
+                    className="flex-1 h-10 rounded-xl border border-red-500/30 text-red-500 text-sm font-bold hover:bg-red-500/10 disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                  >
+                    <XCircle size={14} />
+                    رد
+                  </button>
+                </div>
+              )}
+
+              {apt.status === "confirmed" && (
+                <button
+                  onClick={() => completeMutation.mutate(apt.id)}
+                  disabled={completeMutation.isPending}
+                  className="w-full h-10 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white text-sm font-bold mt-4 disabled:opacity-50"
+                >
+                  تکمیل شد
+                </button>
+              )}
+
+              <div className="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-white/10 flex items-center justify-between text-xs">
+                <span className="text-gray-500 dark:text-gray-400">مبلغ</span>
+                <span className="font-bold text-gray-900 dark:text-white tabular-nums">
+                  {apt.price.toLocaleString("fa-IR")} تومان
+                </span>
+              </div>
+            </motion.div>
+          ))}
         </div>
       )}
     </div>

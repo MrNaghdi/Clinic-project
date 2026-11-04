@@ -17,6 +17,7 @@ import {
   AppointmentStatus,
 } from "../../booking/api/booking.api";
 import { getJalaliInfo } from "../../booking/utils/date";
+import { ReviewableBanner } from "../../reviews/components/ReviewableBanner";
 
 const STATUS_CONFIG = {
   [AppointmentStatus.Pending]: {
@@ -100,7 +101,6 @@ export default function AppointmentsPage() {
         </motion.div>
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-1">
@@ -118,7 +118,10 @@ export default function AppointmentsPage() {
         </Link>
       </div>
 
-      {/* Tabs */}
+      <div className="mb-6">
+        <ReviewableBanner />
+      </div>
+
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {TABS.map((tab) => (
           <button
@@ -135,14 +138,12 @@ export default function AppointmentsPage() {
         ))}
       </div>
 
-      {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="animate-spin text-brand-500" size={40} />
         </div>
       )}
 
-      {/* Empty */}
       {!isLoading && (!filtered || filtered.length === 0) && (
         <div className="rounded-3xl border-2 border-dashed border-gray-300 dark:border-white/10 p-12 lg:p-20 text-center">
           <div className="w-20 h-20 rounded-full bg-brand-50 dark:bg-brand-500/10 text-brand-500 flex items-center justify-center mx-auto mb-6">
@@ -167,7 +168,6 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* List */}
       {!isLoading && filtered && filtered.length > 0 && (
         <div className="flex flex-col gap-3">
           <AnimatePresence>
@@ -204,7 +204,7 @@ export default function AppointmentsPage() {
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
                         <span className="flex items-center gap-1.5">
                           <User size={14} className="text-brand-500" />
-                          {apt.specialist?.name}
+                          {`${apt.specialist?.user?.first_name ?? ""} ${apt.specialist?.user?.last_name ?? ""}`.trim() || "متخصص"}
                         </span>
                         <span className="flex items-center gap-1.5">
                           <Calendar size={14} className="text-brand-500" />

@@ -1,5 +1,4 @@
 import axiosInstance from "../../../shared/api/axiosInstance";
-import type { Service } from "../../services/api/services.api";
 
 export enum SpecialistStatus {
   Pending = "pending",
@@ -33,12 +32,31 @@ export interface WorkingHoursInput {
 export interface Specialist {
   id: number;
   user_id: number;
-  user: SpecialistUser;
+  user?: {
+    id: number;
+    first_name: string | null;
+    last_name: string | null;
+    phone: string;
+    profile_image: string | null;
+  } | null;
   bio: string | null;
-  status: SpecialistStatus;
+  status: "pending" | "approved" | "rejected";
   is_active: boolean;
-  working_hours?: WorkingHours[];
-  services?: Service[];
+  rating: number;
+  review_count: number;
+  services?: Array<{
+    id: number;
+    name: string;
+    duration_minutes: number;
+    price: number;
+    image: string | null;
+  }>;
+  working_hours?: Array<{
+    id: number;
+    day_of_week: number;
+    start_time: string;
+    end_time: string;
+  }>;
   created_at: string;
   updated_at: string;
 }

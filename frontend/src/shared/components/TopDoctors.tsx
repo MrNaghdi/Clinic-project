@@ -29,7 +29,8 @@ interface SpecialistEntity {
   is_active: boolean;
   services?: Array<{ id: number; name: string }>;
   years_of_experience?: number | null;
-  rating?: number | null;
+  rating?: number | string | null;
+  review_count?: number | string | null;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -48,6 +49,9 @@ const mapSpecialist = (s: SpecialistEntity) => {
     [s.user?.first_name, s.user?.last_name].filter(Boolean).join(" ") ||
     "متخصص";
 
+  const rating =
+    s.rating != null && !isNaN(Number(s.rating)) ? Number(s.rating) : null;
+
   return {
     id: s.id,
     name: fullName,
@@ -56,7 +60,7 @@ const mapSpecialist = (s: SpecialistEntity) => {
     bio: s.bio ?? "بیوگرافی این متخصص هنوز ثبت نشده است.",
     services: s.services?.map((sv) => sv.name) ?? [],
     experience: s.years_of_experience ?? null,
-    rating: s.rating ?? null,
+    rating,
   };
 };
 
@@ -379,7 +383,7 @@ const TopDoctors = () => {
                               fill="currentColor"
                             />
                             <span className="font-black text-sm">
-                              {toFa(doctor.rating.toFixed(1))}
+                              {toFa(Number(doctor.rating).toFixed(1))}
                             </span>
                           </motion.div>
                         </motion.div>
@@ -408,7 +412,9 @@ const TopDoctors = () => {
                               </span>
                               <span
                                 className={`block text-[11px] ${
-                                  darkMode ? "text-white/60" : "text-slate-500"
+                                  darkMode
+                                    ? "text-white/60"
+                                    : "text-slate-500"
                                 }`}
                               >
                                 سابقه کار
@@ -558,7 +564,9 @@ const TopDoctors = () => {
                   );
                 })}
               </div>
-              <span className={`text-xs font-bold tabular-nums ${textMuted}`}>
+              <span
+                className={`text-xs font-bold tabular-nums ${textMuted}`}
+              >
                 {toFa(activeIndex + 1)} / {toFa(total)}
               </span>
             </div>

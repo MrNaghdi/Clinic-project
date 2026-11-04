@@ -13,9 +13,12 @@ import {
   Briefcase,
 } from "lucide-react";
 import { findOneSpecialist } from "../api/specialists.api";
+import { fetchSpecialistStats } from "../../reviews/api/reviews.api";
 import { Container } from "../../../shared/components/ui/Container";
 import { Button } from "../../../shared/components/ui/Button";
 import { RevealOnScroll } from "../../../shared/components/animations/RevealOnScroll";
+import { ReviewList } from "../../reviews/components/ReviewList";
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 const DAYS: Record<string | number, string> = {
   0: "یکشنبه",
@@ -34,15 +37,29 @@ const DAYS: Record<string | number, string> = {
   saturday: "شنبه",
 };
 
+const toFa = (n: number | string) =>
+  String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
 export default function SpecialistDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const specialistId = Number(id);
 
-  const { data: specialist, isLoading, isError } = useQuery({
+  const {
+    data: specialist,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["specialists", specialistId],
     queryFn: () => findOneSpecialist(specialistId),
     enabled: !!specialistId,
+  });
+
+  const { data: reviewStats } = useQuery({
+    queryKey: ["reviews-stats", specialistId],
+    queryFn: () => fetchSpecialistStats(specialistId),
+    enabled: !!specialistId,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (isLoading) {
@@ -92,9 +109,7 @@ export default function SpecialistDetailPage() {
       specialist.user?.last_name ?? ""
     }`.trim() || "بدون نام";
 
-  const imageUrl = specialist.user?.profile_image
-    ? `http://localhost:3000${specialist.user.profile_image}`
-    : null;
+  const imageUrl = getImageUrl(specialist.user?.profile_image ?? null);
 
   const initials =
     (specialist.user?.first_name?.[0] ?? "") +
@@ -103,13 +118,11 @@ export default function SpecialistDetailPage() {
   const workingHours = specialist.working_hours ?? [];
   const services = specialist.services ?? [];
 
+  const hasReviews = !!reviewStats && reviewStats.count > 0;
+
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen bg-white dark:bg-ink pt-20 pb-20"
-    >
+    <div dir="rtl" className="min-h-screen bg-white dark:bg-ink pt-20 pb-20">
       <Container size="lg">
-        {/* Breadcrumb */}
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -132,11 +145,9 @@ export default function SpecialistDetailPage() {
         </motion.nav>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* ═══ RIGHT — Photo + Stats + CTA ═══ */}
           <div className="lg:col-span-1 lg:order-1">
             <RevealOnScroll>
               <div className="lg:sticky lg:top-28">
-                {/* Photo */}
                 <div className="relative rounded-3xl overflow-hidden bg-gray-100 dark:bg-white/5 aspect-[4/5] mb-6">
                   {imageUrl ? (
                     <img
@@ -150,7 +161,6 @@ export default function SpecialistDetailPage() {
                     </div>
                   )}
 
-                  {/* Verified badge */}
                   <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 dark:bg-ink/95 backdrop-blur-md shadow-md">
                     <CheckCircle2
                       size={14}
@@ -163,7 +173,6 @@ export default function SpecialistDetailPage() {
                   </div>
                 </div>
 
-                {/* Stats */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <div className="rounded-2xl bg-gray-50 dark:bg-white/5 p-4 text-center">
                     <Award size={20} className="text-brand-500 mx-auto mb-2" />
@@ -180,17 +189,18 @@ export default function SpecialistDetailPage() {
                       className="text-yellow-400 mx-auto mb-2"
                       fill="#facc15"
                     />
-                    <p className="text-xl font-black text-gray-900 dark:text-white">
-                      5.0
+                    <p className="text-xl font-black text-gray-900 dark:text-white tabular-nums">
+                      {hasReviews ? reviewStats!.average.toFixed(1) : "—"}
                     </p>
                     <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                      امتیاز
+                      {hasReviews
+                        ? `از ${toFa(reviewStats!.count)} نظر`
+                        : "بدون نظر"}
                     </p>
                   </div>
                 </div>
 
-                {/* CTA */}
-                <Link to={`/booking?specialist=${specialist.id}`}>
+                <Link to={`/specialists/${specialist.id}/book`}>
                   <Button
                     variant="brand"
                     size="lg"
@@ -204,9 +214,7 @@ export default function SpecialistDetailPage() {
             </RevealOnScroll>
           </div>
 
-          {/* ═══ LEFT — Content ═══ */}
           <div className="lg:col-span-2 lg:order-2 space-y-6">
-            {/* Header */}
             <RevealOnScroll delay={0.1}>
               <div className="pb-6 border-b border-gray-200 dark:border-white/5">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-xs font-medium mb-4">
@@ -219,18 +227,39 @@ export default function SpecialistDetailPage() {
                 </h1>
 
                 <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                  متخصص پوست و زیبایی
+                  {services.length > 0
+                    ? services
+                        .slice(0, 2)
+                        .map((s) => s.name)
+                        .join(" · ")
+                    : "متخصص"}
                 </p>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <Star size={16} className="text-yellow-400" fill="#facc15" />
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      5.0
-                    </span>
-                    (۱۲ نظر)
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                  {hasReviews ? (
+                    <>
+                      <span className="flex items-center gap-1.5">
+                        <Star
+                          size={16}
+                          className="text-yellow-400"
+                          fill="#facc15"
+                        />
+                        <span className="font-bold text-gray-900 dark:text-white">
+                          {reviewStats!.average.toFixed(1)}
+                        </span>
+                        ({toFa(reviewStats!.count)} نظر)
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                    </>
+                  ) : (
+                    <>
+                      <span className="flex items-center gap-1.5">
+                        <Star size={16} className="text-gray-400" />
+                        <span>بدون نظر</span>
+                      </span>
+                      <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                    </>
+                  )}
                   <span className="flex items-center gap-1.5">
                     <Briefcase size={16} className="text-brand-500" />
                     ۱۰+ سال تجربه
@@ -239,7 +268,6 @@ export default function SpecialistDetailPage() {
               </div>
             </RevealOnScroll>
 
-            {/* About */}
             <RevealOnScroll delay={0.2}>
               <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-ink-light p-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">
@@ -251,7 +279,6 @@ export default function SpecialistDetailPage() {
               </div>
             </RevealOnScroll>
 
-            {/* Working Hours */}
             {workingHours.length > 0 && (
               <RevealOnScroll delay={0.3}>
                 <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-ink-light p-6">
@@ -290,7 +317,6 @@ export default function SpecialistDetailPage() {
               </RevealOnScroll>
             )}
 
-            {/* Services */}
             {services.length > 0 && (
               <RevealOnScroll delay={0.4}>
                 <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-white dark:bg-ink-light p-6">
@@ -333,7 +359,6 @@ export default function SpecialistDetailPage() {
               </RevealOnScroll>
             )}
 
-            {/* Back */}
             <RevealOnScroll delay={0.5}>
               <button
                 onClick={() => navigate(-1)}
@@ -344,6 +369,13 @@ export default function SpecialistDetailPage() {
               </button>
             </RevealOnScroll>
           </div>
+        </div>
+
+        <div className="mt-16 pt-8 border-t border-gray-200 dark:border-white/10">
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">
+            نظرات کاربران
+          </h2>
+          <ReviewList specialistId={specialist.id} showStats={true} />
         </div>
       </Container>
     </div>

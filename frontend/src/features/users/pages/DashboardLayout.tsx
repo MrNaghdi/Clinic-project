@@ -21,6 +21,7 @@ import { fetchMe } from "../api/users.api";
 const menuItems = [
   { label: "نمای کلی", to: "/profile", icon: LayoutDashboard, end: true },
   { label: "نوبت‌های من", to: "/profile/appointments", icon: Calendar },
+  { to: "/profile/reviews", label: "نظرات من", icon: Star },
   { label: "تاریخچه خدمات", to: "/profile/history", icon: Clock },
   { label: "عکس پروفایل", to: "/profile/avatar", icon: Camera },
   { label: "تنظیمات", to: "/profile/settings", icon: Settings },
@@ -164,7 +165,7 @@ export default function DashboardLayout() {
           صفحه اصلی
         </NavLink>
         <NavLink
-          to="/services"
+          to="/booking"
           onClick={() => setSidebarOpen(false)}
           className="group relative flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-500 to-accent-500 text-white shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 transition-all overflow-hidden"
         >

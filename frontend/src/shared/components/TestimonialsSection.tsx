@@ -6,7 +6,7 @@ import {
   useSpring,
   useReducedMotion,
 } from "framer-motion";
-
+import { useQuery } from "@tanstack/react-query";
 import {
   Star,
   Quote,
@@ -21,7 +21,6 @@ import {
   Smile,
   Sun,
 } from "lucide-react";
-
 import {
   useState,
   useEffect,
@@ -32,17 +31,11 @@ import {
   type KeyboardEvent,
   type TouchEvent,
 } from "react";
-
-import user1 from "../../assets/image/user1.png";
-import user2 from "../../assets/image/user2.png";
-
 import { useDarkMode } from "../hook/useDarkMode";
 import { Container } from "./ui/Container";
 import { RevealOnScroll } from "./animations/RevealOnScroll";
-
-// --------------------------------------------------
-// Types
-// --------------------------------------------------
+import { fetchReviews } from "../../features/reviews/api/reviews.api";
+import { getImageUrl } from "../utils/getImageUrl";
 
 type ServiceIconName =
   | "zap"
@@ -52,9 +45,9 @@ type ServiceIconName =
   | "heart"
   | "sun";
 
-type Testimonial = {
+type DisplayTestimonial = {
   id: number;
-  image: string;
+  image: string | null;
   name: string;
   role: string;
   rating: number;
@@ -64,95 +57,8 @@ type Testimonial = {
   text: string;
 };
 
-// --------------------------------------------------
-// Testimonials
-// --------------------------------------------------
-
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    image: user2,
-    name: "مبینا رضایی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۲ هفته پیش",
-    service: "لیزر موهای زائد",
-    serviceIcon: "zap",
-    text: "خدمات این کلینیک عالی بود. محیط آرام و برخورد کارکنان بسیار خوب بود. حتماً دوباره مراجعه می‌کنم.",
-  },
-  {
-    id: 2,
-    image: user1,
-    name: "علی محمدی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۳ هفته پیش",
-    service: "لیزر موهای زائد",
-    serviceIcon: "zap",
-    text: "بسیار حرفه‌ای بود. نتیجه لیزر موهای زائد کاملاً رضایت‌بخش بود. از تیم حرفه‌ای کلینیک ممنونم.",
-  },
-  {
-    id: 3,
-    image: user2,
-    name: "نرگس کریمی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۱ ماه پیش",
-    service: "تزریق ژل",
-    serviceIcon: "syringe",
-    text: "برای تزریق ژل زیر نظر تیم حرفه‌ای مراجعه کردم و از روند مشاوره و خدمات رضایت داشتم.",
-  },
-  {
-    id: 4,
-    image: user1,
-    name: "سارا احمدی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۱ ماه پیش",
-    service: "مشاوره پوست",
-    serviceIcon: "smile",
-    text: "از مشاوره اولیه تا پایان درمان، روند کار منظم و رضایت‌بخش بود. تیم پشتیبانی هم پاسخ‌گو بود.",
-  },
-  {
-    id: 5,
-    image: user2,
-    name: "مریم حسینی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۲ ماه پیش",
-    service: "هایفوتراپی",
-    serviceIcon: "sun",
-    text: "تجهیزات و بهداشت محیط برایم اهمیت زیادی داشت. از نحوه توضیح مراحل درمان و رسیدگی تیم راضی بودم.",
-  },
-  {
-    id: 6,
-    image: user1,
-    name: "رضا نوری",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۲ ماه پیش",
-    service: "پاکسازی پوست",
-    serviceIcon: "droplets",
-    text: "کیفیت خدمات خوب بود و پرسنل با حوصله به سؤال‌ها پاسخ می‌دادند. محیط هم آرامش‌بخش بود.",
-  },
-  {
-    id: 7,
-    image: user2,
-    name: "الهام صادقی",
-    role: "مراجعه‌کننده",
-    rating: 5,
-    date: "۳ ماه پیش",
-    service: "میکرونیدلینگ",
-    serviceIcon: "heart",
-    text: "توضیحات مربوط به روند درمان روشن بود و در طول جلسات، راهنمایی‌های لازم را دریافت کردم.",
-  },
-];
-
-// --------------------------------------------------
-// Constants
-// --------------------------------------------------
-
 const AUTOPLAY_MS = 6500;
+const MAX_TESTIMONIALS = 10;
 
 const SERVICE_ICONS: Record<ServiceIconName, ReactNode> = {
   zap: <Zap size={14} />,
@@ -163,13 +69,109 @@ const SERVICE_ICONS: Record<ServiceIconName, ReactNode> = {
   sun: <Sun size={14} />,
 };
 
-// --------------------------------------------------
-// Component
-// --------------------------------------------------
+const SERVICE_KEYWORDS: Array<{
+  keywords: string[];
+  icon: ServiceIconName;
+}> = [
+  { keywords: ["لیزر"], icon: "zap" },
+  { keywords: ["ژل", "بوتاکس", "تزریق"], icon: "syringe" },
+  { keywords: ["مشاوره"], icon: "smile" },
+  { keywords: ["پاکسازی", "آب‌رسانی", "آبرسانی"], icon: "droplets" },
+  { keywords: ["میکرونیدلینگ", "هایفو"], icon: "heart" },
+  { keywords: ["هایفوتراپی", "جوانسازی"], icon: "sun" },
+];
+
+const getServiceIcon = (serviceName: string | null): ServiceIconName => {
+  if (!serviceName) return "heart";
+  for (const entry of SERVICE_KEYWORDS) {
+    if (entry.keywords.some((k) => serviceName.includes(k))) {
+      return entry.icon;
+    }
+  }
+  return "heart";
+};
+
+const parseDate = (iso: string): Date | null => {
+  try {
+    let dateStr = iso;
+
+    if (!iso.endsWith("Z") && !/[+-]\d{2}:\d{2}$/.test(iso)) {
+      dateStr = iso.includes("T")
+        ? `${iso}+03:30`
+        : `${iso.replace(" ", "T")}+03:30`;
+    }
+
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return null;
+    return date;
+  } catch {
+    return null;
+  }
+};
+
+const formatRelativeTime = (iso: string): string => {
+  const date = parseDate(iso);
+  if (!date) return "";
+
+  const now = new Date();
+
+  const startOfToday = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  const startOfDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+
+  const diffDays = Math.round(
+    (startOfToday.getTime() - startOfDate.getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  if (diffDays <= 0) return "امروز";
+  if (diffDays === 1) return "دیروز";
+  if (diffDays < 7) return `${diffDays} روز پیش`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} هفته پیش`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} ماه پیش`;
+  return `${Math.floor(diffDays / 365)} سال پیش`;
+};
 
 const TestimonialsSection = () => {
   const { darkMode } = useDarkMode();
   const reduceMotion = useReducedMotion();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["home-testimonials", MAX_TESTIMONIALS],
+    queryFn: () => fetchReviews({ page: 1, limit: MAX_TESTIMONIALS }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const testimonials: DisplayTestimonial[] = (data?.items ?? [])
+    .filter((r) => r.comment && r.comment.trim().length > 0)
+    .map((r) => {
+      const firstName = r.user?.first_name ?? "";
+      const lastName = r.user?.last_name ?? "";
+      const fullName = `${firstName} ${lastName}`.trim() || "کاربر";
+      const serviceName = r.service?.name ?? "خدمت";
+      const image = getImageUrl(r.user?.profile_image ?? null);
+
+      return {
+        id: r.id,
+        image,
+        name: fullName,
+        role: "مراجعه‌کننده",
+        rating: r.rating,
+        date: formatRelativeTime(r.created_at),
+        service: serviceName,
+        serviceIcon: getServiceIcon(serviceName),
+        text: r.comment!.trim(),
+      };
+    });
+
+  const total = testimonials.length;
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -177,29 +179,17 @@ const TestimonialsSection = () => {
   const cardRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
 
-  const total = testimonials.length;
-
-  // -----------------------------------------------
-  // 3D card interaction
-  // -----------------------------------------------
-
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
   const cardRotateX = useSpring(
     useTransform(mouseY, [-0.5, 0.5], [4, -4]),
-    {
-      stiffness: 150,
-      damping: 24,
-    },
+    { stiffness: 150, damping: 24 },
   );
 
   const cardRotateY = useSpring(
     useTransform(mouseX, [-0.5, 0.5], [-4, 4]),
-    {
-      stiffness: 150,
-      damping: 24,
-    },
+    { stiffness: 150, damping: 24 },
   );
 
   const spotlightX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
@@ -207,11 +197,8 @@ const TestimonialsSection = () => {
 
   const handleMouseMove = (event: MouseEvent<HTMLDivElement>) => {
     if (reduceMotion || !cardRef.current) return;
-
     const rect = cardRef.current.getBoundingClientRect();
-
     if (!rect.width || !rect.height) return;
-
     mouseX.set((event.clientX - rect.left) / rect.width - 0.5);
     mouseY.set((event.clientY - rect.top) / rect.height - 0.5);
   };
@@ -220,10 +207,6 @@ const TestimonialsSection = () => {
     mouseX.set(0);
     mouseY.set(0);
   };
-
-  // -----------------------------------------------
-  // Slider navigation
-  // -----------------------------------------------
 
   const goTo = useCallback(
     (index: number) => {
@@ -240,37 +223,22 @@ const TestimonialsSection = () => {
     setActiveIndex((index) => (index - 1 + total) % total);
   }, [total]);
 
-  // -----------------------------------------------
-  // Autoplay
-  // -----------------------------------------------
-
   useEffect(() => {
-    if (isHovered || reduceMotion) return;
-
+    if (isHovered || reduceMotion || total <= 1) return;
     const intervalId = window.setInterval(next, AUTOPLAY_MS);
-
     return () => window.clearInterval(intervalId);
-  }, [isHovered, reduceMotion, next]);
-
-  // -----------------------------------------------
-  // Keyboard controls
-  // -----------------------------------------------
+  }, [isHovered, reduceMotion, next, total]);
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "ArrowLeft") {
       event.preventDefault();
       next();
     }
-
     if (event.key === "ArrowRight") {
       event.preventDefault();
       prev();
     }
   };
-
-  // -----------------------------------------------
-  // Touch / swipe controls
-  // -----------------------------------------------
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -278,45 +246,22 @@ const TestimonialsSection = () => {
 
   const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     if (touchStartX.current === null) return;
-
     const touchEndX = event.changedTouches[0]?.clientX;
-
     if (touchEndX === undefined) return;
-
     const difference = touchStartX.current - touchEndX;
-
     if (Math.abs(difference) > 50) {
-      if (difference > 0) {
-        next();
-      } else {
-        prev();
-      }
+      if (difference > 0) next();
+      else prev();
     }
-
     touchStartX.current = null;
   };
 
-  // -----------------------------------------------
-  // Slide positions
-  // -----------------------------------------------
-
   const getOffset = (index: number) => {
     let offset = index - activeIndex;
-
-    if (offset > total / 2) {
-      offset -= total;
-    }
-
-    if (offset < -total / 2) {
-      offset += total;
-    }
-
+    if (offset > total / 2) offset -= total;
+    if (offset < -total / 2) offset += total;
     return offset;
   };
-
-  // -----------------------------------------------
-  // Dark theme
-  // -----------------------------------------------
 
   const sectionBackground = darkMode
     ? "bg-[#030711]"
@@ -326,21 +271,13 @@ const TestimonialsSection = () => {
     ? "bg-gradient-to-br from-[#0B1423] via-[#080F1C] to-[#050B15]"
     : "bg-[#F8FAFE]";
 
-  const primaryText = darkMode
-    ? "text-[#EAF1FC]"
-    : "text-[#14243B]";
+  const primaryText = darkMode ? "text-[#EAF1FC]" : "text-[#14243B]";
+  const secondaryText = darkMode ? "text-[#91A5C0]" : "text-[#526781]";
+  const mutedText = darkMode ? "text-[#687D99]" : "text-[#71839B]";
 
-  const secondaryText = darkMode
-    ? "text-[#91A5C0]"
-    : "text-[#526781]";
-
-  const mutedText = darkMode
-    ? "text-[#687D99]"
-    : "text-[#71839B]";
-
-  // -----------------------------------------------
-  // Render
-  // -----------------------------------------------
+  if (!isLoading && testimonials.length === 0) {
+    return null;
+  }
 
   return (
     <section
@@ -348,8 +285,6 @@ const TestimonialsSection = () => {
       aria-labelledby="testimonials-heading"
       className={`relative isolate overflow-hidden py-20 sm:py-24 lg:py-28 ${sectionBackground}`}
     >
-      {/* Background effects */}
-
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -368,32 +303,22 @@ const TestimonialsSection = () => {
                 ease: "easeInOut",
               }}
               className={`absolute -left-32 top-10 h-[380px] w-[380px] rounded-full blur-[120px] sm:h-[520px] sm:w-[520px] ${
-                darkMode
-                  ? "bg-[#12396A]/20"
-                  : "bg-[#9BBCE5]/30"
+                darkMode ? "bg-[#12396A]/20" : "bg-[#9BBCE5]/30"
               }`}
             />
-
             <motion.div
-              animate={{
-                x: [0, -25, 0],
-                y: [0, 20, 0],
-              }}
+              animate={{ x: [0, -25, 0], y: [0, 20, 0] }}
               transition={{
                 duration: 16,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
               className={`absolute -right-32 bottom-0 h-[350px] w-[350px] rounded-full blur-[115px] sm:h-[480px] sm:w-[480px] ${
-                darkMode
-                  ? "bg-[#104763]/15"
-                  : "bg-[#B3D5E9]/30"
+                darkMode ? "bg-[#104763]/15" : "bg-[#B3D5E9]/30"
               }`}
             />
           </>
         )}
-
-        {/* Subtle grid */}
 
         <div
           className="absolute inset-0 opacity-[0.025]"
@@ -413,8 +338,6 @@ const TestimonialsSection = () => {
       </div>
 
       <Container className="relative z-10">
-        {/* Heading */}
-
         <RevealOnScroll>
           <header className="mx-auto mb-12 max-w-2xl text-center sm:mb-16">
             <div
@@ -449,8 +372,6 @@ const TestimonialsSection = () => {
           </header>
         </RevealOnScroll>
 
-        {/* Slider */}
-
         <RevealOnScroll delay={0.1}>
           <div
             role="region"
@@ -466,45 +387,51 @@ const TestimonialsSection = () => {
               className="relative flex min-h-[520px] items-center justify-center sm:h-[560px] sm:min-h-0"
               style={{ perspective: "1600px" }}
             >
-              {/* Previous */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div
+                    className={`h-[400px] w-full max-w-[600px] animate-pulse rounded-[26px] ${
+                      darkMode ? "bg-white/5" : "bg-gray-200"
+                    }`}
+                  />
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={prev}
-                aria-label="نمایش نظر قبلی"
-                className={`absolute right-0 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-xl transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#438DBD] sm:right-2 sm:h-12 sm:w-12 ${
-                  darkMode
-                    ? "border-[#1C2B40] bg-[#080F1C]/95 text-[#D9E6F7] hover:border-[#315A7B] hover:bg-[#101E31]"
-                    : "border-[#D4DFED] bg-[#F9FBFF]/95 text-[#243B57] hover:border-[#8DB9D8] hover:bg-white"
-                }`}
-              >
-                <ArrowRight size={20} />
-              </button>
+              {!isLoading && total > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={prev}
+                    aria-label="نمایش نظر قبلی"
+                    className={`absolute right-0 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-xl transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#438DBD] sm:right-2 sm:h-12 sm:w-12 ${
+                      darkMode
+                        ? "border-[#1C2B40] bg-[#080F1C]/95 text-[#D9E6F7] hover:border-[#315A7B] hover:bg-[#101E31]"
+                        : "border-[#D4DFED] bg-[#F9FBFF]/95 text-[#243B57] hover:border-[#8DB9D8] hover:bg-white"
+                    }`}
+                  >
+                    <ArrowRight size={20} />
+                  </button>
 
-              {/* Next */}
-
-              <button
-                type="button"
-                onClick={next}
-                aria-label="نمایش نظر بعدی"
-                className={`absolute left-0 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-xl transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#438DBD] sm:left-2 sm:h-12 sm:w-12 ${
-                  darkMode
-                    ? "border-[#1C2B40] bg-[#080F1C]/95 text-[#D9E6F7] hover:border-[#315A7B] hover:bg-[#101E31]"
-                    : "border-[#D4DFED] bg-[#F9FBFF]/95 text-[#243B57] hover:border-[#8DB9D8] hover:bg-white"
-                }`}
-              >
-                <ArrowLeft size={20} />
-              </button>
-
-              {/* Testimonial cards */}
+                  <button
+                    type="button"
+                    onClick={next}
+                    aria-label="نمایش نظر بعدی"
+                    className={`absolute left-0 top-1/2 z-40 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg backdrop-blur-xl transition-all duration-300 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#438DBD] sm:left-2 sm:h-12 sm:w-12 ${
+                      darkMode
+                        ? "border-[#1C2B40] bg-[#080F1C]/95 text-[#D9E6F7] hover:border-[#315A7B] hover:bg-[#101E31]"
+                        : "border-[#D4DFED] bg-[#F9FBFF]/95 text-[#243B57] hover:border-[#8DB9D8] hover:bg-white"
+                    }`}
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                </>
+              )}
 
               <AnimatePresence initial={false}>
                 {testimonials.map((item, index) => {
                   const offset = getOffset(index);
                   const absoluteOffset = Math.abs(offset);
-
                   if (absoluteOffset > 1) return null;
-
                   const isActive = offset === 0;
 
                   return (
@@ -523,10 +450,7 @@ const TestimonialsSection = () => {
                         zIndex: isActive ? 20 : 10,
                         filter: isActive ? "blur(0px)" : "blur(1px)",
                       }}
-                      exit={{
-                        opacity: 0,
-                        scale: 0.94,
-                      }}
+                      exit={{ opacity: 0, scale: 0.94 }}
                       transition={
                         reduceMotion
                           ? { duration: 0.15 }
@@ -544,13 +468,13 @@ const TestimonialsSection = () => {
                           ? "z-20"
                           : "hidden cursor-pointer sm:block"
                       }`}
-                      style={{
-                        transformStyle: "preserve-3d",
-                      }}
+                      style={{ transformStyle: "preserve-3d" }}
                     >
                       <motion.div
                         ref={isActive ? cardRef : undefined}
-                        onMouseMove={isActive ? handleMouseMove : undefined}
+                        onMouseMove={
+                          isActive ? handleMouseMove : undefined
+                        }
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => {
                           setIsHovered(false);
@@ -567,8 +491,6 @@ const TestimonialsSection = () => {
                         }
                         className="relative"
                       >
-                        {/* Active glow */}
-
                         {isActive && (
                           <div
                             aria-hidden="true"
@@ -580,8 +502,6 @@ const TestimonialsSection = () => {
                           />
                         )}
 
-                        {/* Gradient border */}
-
                         <div
                           className={`relative rounded-[26px] p-[1.5px] sm:rounded-[30px] ${
                             isActive
@@ -589,17 +509,13 @@ const TestimonialsSection = () => {
                                 ? "bg-gradient-to-br from-[#18345A] via-[#174E78] to-[#2B7BA8] shadow-2xl shadow-black/40"
                                 : "bg-gradient-to-br from-[#163B70] via-[#1767A8] to-[#38A6D9] shadow-2xl shadow-[#020817]/30"
                               : darkMode
-                                ? "bg-gradient-to-br from-[#26374C] to-[#111C2C]"
-                                : "bg-gradient-to-br from-[#344760] to-[#18283D]"
+                              ? "bg-gradient-to-br from-[#26374C] to-[#111C2C]"
+                              : "bg-gradient-to-br from-[#344760] to-[#18283D]"
                           }`}
                         >
-                          {/* Card surface */}
-
                           <article
                             className={`relative overflow-hidden rounded-[24px] px-5 py-6 sm:rounded-[28px] sm:p-9 lg:p-10 ${cardBackground}`}
                           >
-                            {/* Spotlight */}
-
                             {isActive && !reduceMotion && (
                               <motion.div
                                 aria-hidden="true"
@@ -617,8 +533,6 @@ const TestimonialsSection = () => {
                               />
                             )}
 
-                            {/* Subtle pattern */}
-
                             <div
                               aria-hidden="true"
                               className="pointer-events-none absolute inset-0 opacity-[0.025]"
@@ -628,8 +542,6 @@ const TestimonialsSection = () => {
                                 backgroundSize: "22px 22px",
                               }}
                             />
-
-                            {/* Quote */}
 
                             <Quote
                               aria-hidden="true"
@@ -641,8 +553,6 @@ const TestimonialsSection = () => {
                               }`}
                               fill="currentColor"
                             />
-
-                            {/* Rating and service */}
 
                             <div className="relative mb-6 flex flex-wrap items-center justify-between gap-3">
                               <div
@@ -667,7 +577,6 @@ const TestimonialsSection = () => {
                                     />
                                   ))}
                                 </div>
-
                                 <span
                                   className={`text-xs font-extrabold tabular-nums ${primaryText}`}
                                 >
@@ -687,8 +596,6 @@ const TestimonialsSection = () => {
                               </span>
                             </div>
 
-                            {/* Review text */}
-
                             <div className="relative">
                               <p
                                 className={`min-h-[145px] text-sm font-medium leading-[2.1] sm:min-h-[150px] sm:text-base sm:leading-[2.15] lg:text-lg ${primaryText}`}
@@ -696,8 +603,6 @@ const TestimonialsSection = () => {
                                 «{item.text}»
                               </p>
                             </div>
-
-                            {/* Divider */}
 
                             <div
                               className={`my-6 h-px ${
@@ -707,23 +612,43 @@ const TestimonialsSection = () => {
                               }`}
                             />
 
-                            {/* Customer information */}
-
                             <div className="relative flex items-center justify-between gap-3">
                               <div className="flex min-w-0 items-center gap-3">
                                 <div className="relative shrink-0">
                                   <div className="absolute -inset-1 rounded-full bg-gradient-to-br from-[#163B70] to-[#38A6D9] opacity-40 blur-sm" />
 
-                                  <img
-                                    src={item.image}
-                                    alt=""
-                                    loading="lazy"
-                                    className={`relative h-12 w-12 rounded-full border-2 object-cover sm:h-14 sm:w-14 ${
+                                  {item.image ? (
+                                    <img
+                                      src={item.image}
+                                      alt=""
+                                      loading="lazy"
+                                      onError={(e) => {
+                                        (
+                                          e.currentTarget as HTMLImageElement
+                                        ).style.display = "none";
+                                        e.currentTarget.parentElement
+                                          ?.querySelector(".fallback")
+                                          ?.classList.remove("hidden");
+                                      }}
+                                      className={`relative h-12 w-12 rounded-full border-2 object-cover sm:h-14 sm:w-14 ${
+                                        darkMode
+                                          ? "border-[#0B1423]"
+                                          : "border-[#F8FAFE]"
+                                      }`}
+                                    />
+                                  ) : null}
+
+                                  <div
+                                    className={`fallback ${
+                                      item.image ? "hidden" : ""
+                                    } relative h-12 w-12 sm:h-14 sm:w-14 rounded-full border-2 bg-gradient-to-br from-[#163B70] to-[#38A6D9] flex items-center justify-center text-white font-black text-lg ${
                                       darkMode
                                         ? "border-[#0B1423]"
                                         : "border-[#F8FAFE]"
                                     }`}
-                                  />
+                                  >
+                                    {item.name?.[0] ?? "?"}
+                                  </div>
 
                                   <BadgeCheck
                                     size={17}
@@ -739,7 +664,6 @@ const TestimonialsSection = () => {
                                   >
                                     {item.name}
                                   </p>
-
                                   <p
                                     className={`mt-1 text-xs sm:text-sm ${secondaryText}`}
                                   >
@@ -765,8 +689,6 @@ const TestimonialsSection = () => {
           </div>
         </RevealOnScroll>
 
-        {/* Bottom note */}
-
         <RevealOnScroll delay={0.2}>
           <div
             className={`mx-auto mt-12 flex max-w-xl items-start gap-3 rounded-2xl border p-4 sm:mt-14 sm:p-5 ${
@@ -783,10 +705,9 @@ const TestimonialsSection = () => {
               <p className={`mb-1 text-sm font-extrabold ${primaryText}`}>
                 تجربه شما برای ما ارزشمند است
               </p>
-
               <p className={`text-xs leading-7 sm:text-sm ${secondaryText}`}>
-                هدف ما ارائه خدمات مسئولانه، مشاوره شفاف و تجربه‌ای رضایت‌بخش
-                برای هر مراجعه‌کننده است.
+                هدف ما ارائه خدمات مسئولانه، مشاوره شفاف و تجربه‌ای
+                رضایت‌بخش برای هر مراجعه‌کننده است.
               </p>
             </div>
           </div>

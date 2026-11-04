@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Play, Sparkles, Star } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import axiosInstance from "../../../shared/api/axiosInstance";
 import { Button } from "../ui/Button";
 import { Container } from "../ui/Container";
 import { AuroraBackground } from "../effects/AuroraBackground";
@@ -9,18 +11,42 @@ import { NumberTicker } from "../animations/NumberTicker";
 
 import heroImage from "../../../assets/image/baner.png";
 
+const toFa = (n: number | string) =>
+  String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
+
+interface PublicStats {
+  customers: number;
+  specialists: number;
+  reviews_average: number;
+  reviews_count: number;
+}
+
+async function fetchPublicStats(): Promise<PublicStats> {
+  const { data } = await axiosInstance.get("/public/stats");
+  return data;
+}
+
 export function Hero() {
+  const { data: stats } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: fetchPublicStats,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const customers = stats?.customers ?? 0;
+  const specialists = stats?.specialists ?? 0;
+  const averageRating = stats?.reviews_average ?? 0;
+  const totalReviews = stats?.reviews_count ?? 0;
+  const filledStars = Math.round(averageRating);
+
   return (
     <section className="relative min-h-screen flex items-center pt-24 pb-16 overflow-hidden bg-white dark:bg-ink">
-      {/* ── Aurora Background */}
       <AuroraBackground />
       <GridPattern />
 
       <Container className="relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          {/* ═══ LEFT — Content ═══ */}
           <div>
-            {/* Badge */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -34,7 +60,6 @@ export function Hero() {
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             </motion.div>
 
-            {/* Title */}
             <motion.h1
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -47,7 +72,6 @@ export function Hero() {
                 <span className="bg-gradient-to-r from-brand-600 via-accent-500 to-brand-600 bg-clip-text text-transparent">
                   طبیعی
                 </span>
-                {/* SVG underline */}
                 <svg
                   className="absolute -bottom-3 left-0 w-full"
                   height="20"
@@ -76,7 +100,6 @@ export function Hero() {
               با ما
             </motion.h1>
 
-            {/* Description */}
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -87,7 +110,6 @@ export function Hero() {
               جدیدترین تجهیزات روز دنیا.
             </motion.p>
 
-            {/* Buttons */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -114,46 +136,61 @@ export function Hero() {
               </Link>
             </motion.div>
 
-            {/* Stats */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.8 }}
               className="flex items-center gap-8 mt-16 pt-8 border-t border-gray-200 dark:border-white/10"
             >
-              {[
-                { value: 1500, suffix: "+", label: "مشتری راضی" },
-                { value: 20, suffix: "+", label: "پزشک متخصص" },
-                { value: 10, suffix: "+", label: "سال تجربه" },
-              ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 + i * 0.1 }}
-                >
-                  <p className="text-3xl font-black text-gray-900 dark:text-white">
-                    <NumberTicker value={stat.value} suffix={stat.suffix} />
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {stat.label}
-                  </p>
-                </motion.div>
-              ))}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+              >
+                <p className="text-3xl font-black text-gray-900 dark:text-white">
+                  <NumberTicker value={customers} suffix="+" />
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  مشتری راضی
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+              >
+                <p className="text-3xl font-black text-gray-900 dark:text-white">
+                  <NumberTicker value={specialists} suffix="+" />
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  پزشک متخصص
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 }}
+              >
+                <p className="text-3xl font-black text-gray-900 dark:text-white">
+                  <NumberTicker value={10} suffix="+" />
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  سال تجربه
+                </p>
+              </motion.div>
             </motion.div>
           </div>
 
-          {/* ═══ RIGHT — Image + Floating Cards ═══ */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, delay: 0.3 }}
             className="relative"
           >
-            {/* Glow behind image */}
             <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-accent-500 rounded-[2.5rem] rotate-6 opacity-30 blur-3xl" />
 
-            {/* Image */}
             <div className="relative rounded-[2.5rem] overflow-hidden shadow-2xl shadow-brand-500/20 border-4 border-white dark:border-white/10">
               <img
                 src={heroImage}
@@ -163,7 +200,6 @@ export function Hero() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
 
-            {/* Floating Card — Doctors */}
             <motion.div
               initial={{ opacity: 0, x: -30, y: 0 }}
               animate={{ opacity: 1, x: 0 }}
@@ -178,12 +214,11 @@ export function Hero() {
                   متخصصان
                 </p>
                 <p className="font-bold text-sm text-gray-900 dark:text-white">
-                  +۲۰ پزشک
+                  {toFa(specialists)}+ پزشک
                 </p>
               </div>
             </motion.div>
 
-            {/* Floating Card — Rating */}
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -192,24 +227,38 @@ export function Hero() {
               style={{ animationDelay: "1s" }}
             >
               <div className="flex items-center gap-1 mb-1">
-                {[...Array(5)].map((_, i) => (
+                {[1, 2, 3, 4, 5].map((star) => (
                   <Star
-                    key={i}
+                    key={star}
                     size={12}
-                    className="text-yellow-400"
-                    fill="#facc15"
+                    className={
+                      totalReviews > 0 && star <= filledStars
+                        ? "text-yellow-400"
+                        : "text-gray-300 dark:text-gray-600"
+                    }
+                    fill={
+                      totalReviews > 0 && star <= filledStars
+                        ? "#facc15"
+                        : "none"
+                    }
                   />
                 ))}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 امتیاز کاربران
               </p>
-              <p className="font-black text-lg text-gray-900 dark:text-white">
-                ۴.۹ / ۵
+              <p className="font-black text-lg text-gray-900 dark:text-white tabular-nums">
+                {totalReviews > 0
+                  ? `${toFa(averageRating.toFixed(1))} / ۵`
+                  : "بدون نظر"}
               </p>
+              {totalReviews > 0 && (
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
+                  از {toFa(totalReviews)} نظر
+                </p>
+              )}
             </motion.div>
 
-            {/* Floating Card — Experience */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -224,7 +273,6 @@ export function Hero() {
         </div>
       </Container>
 
-      {/* Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

@@ -48,6 +48,8 @@ import AdminUsers from "./features/admin/pages/AdminUsers";
 import AdminServices from "./features/admin/pages/AdminServices";
 import AdminAdmins from "./features/admin/pages/AdminAdmins";
 import AdminAppointments from "./features/admin/pages/AdminAppointments";
+import AdminReviews from "./features/admin/pages/AdminReviews";
+import MyReviewsPage from "./features/users/pages/MyReviewsPage";
 
 function App() {
   const { pathname } = useLocation();
@@ -150,6 +152,7 @@ function App() {
         >
           <Route index element={<ProfilePage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="reviews" element={<MyReviewsPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="avatar" element={<UploadAvatarPage />} />
@@ -188,6 +191,7 @@ function App() {
           <Route path="users" element={<AdminUsers />} />
           <Route path="services" element={<AdminServices />} />
           <Route path="appointments" element={<AdminAppointments />} />
+          <Route path="reviews" element={<AdminReviews />} />
 
           <Route element={<RequireSuperAdmin />}>
             <Route path="admins" element={<AdminAdmins />} />
