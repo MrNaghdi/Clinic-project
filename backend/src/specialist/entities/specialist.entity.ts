@@ -45,6 +45,12 @@ export class Specialist {
   @Column({ default: true })
   is_active: boolean;
 
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0 })
+  rating: number;
+
+  @Column({ type: 'int', default: 0 })
+  review_count: number;
+
   @OneToMany(() => WorkingHours, (wh) => wh.specialist)
   working_hours: WorkingHours[];
 

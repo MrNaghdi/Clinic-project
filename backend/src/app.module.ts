@@ -18,6 +18,9 @@ import { WorkingHours } from './specialist/entities/workingHours.entity';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { Appointment } from './appointments/entities/appointment.entity';
 import { AdminModule } from './admin/admin.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { Review } from './reviews/entities/review.entity';
+import { PublicModule } from './public/public.module';
 
 @Module({
   imports: [
@@ -34,7 +37,7 @@ import { AdminModule } from './admin/admin.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment],
+        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment, Review],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -65,6 +68,8 @@ import { AdminModule } from './admin/admin.module';
     SpecialistModule,
     AppointmentsModule,
     AdminModule,
+    ReviewsModule,
+    PublicModule,
   ],
   controllers: [AppController],
   providers: [AppService],

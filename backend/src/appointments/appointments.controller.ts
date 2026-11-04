@@ -23,7 +23,7 @@ import { AppointmentStatus } from './entities/appointment.entity';
 
 @Controller('appointments')
 export class AppointmentsController {
-  constructor(private readonly appointmentsService: AppointmentsService) {}
+  constructor(private readonly appointmentsService: AppointmentsService) { }
 
   @Get('week-availability')
   getWeekAvailability(@Query() dto: WeekAvailabilityDto) {
@@ -35,7 +35,6 @@ export class AppointmentsController {
     return this.appointmentsService.getAvailableSlots(dto);
   }
 
-  // ⬇️ STATS — قبل از :id
   @Get('stats/user')
   @UseGuards(JwtAuthGuard)
   getUserStats(@CurrentUser() user: User) {
@@ -59,6 +58,12 @@ export class AppointmentsController {
   )
   create(@CurrentUser() user: User, @Body() dto: CreateAppointmentDto) {
     return this.appointmentsService.create(user, dto);
+  }
+
+  @Get('my/reviewable')
+  @UseGuards(JwtAuthGuard)
+  findMyReviewable(@CurrentUser() user: User) {
+    return this.appointmentsService.findReviewable(user.id);
   }
 
   @Get('my')

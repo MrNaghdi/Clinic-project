@@ -72,7 +72,7 @@ export class SpecialistService {
       console.log(`🎯 [cache HIT] specialist:all (${cached.length} items)`);
       return cached;
     }
-
+  
     console.log('💾 [cache MISS] specialist:all → DB');
     const specialists = await this.specialistRepository.find({
       where: { is_active: true, status: SpecialistStatus.Approved },
@@ -81,20 +81,18 @@ export class SpecialistService {
         services: true,
         working_hours: true,
       },
-      order: { created_at: 'DESC' },
+      order: { rating: 'DESC', created_at: 'DESC' },
     });
-
+  
     specialists.forEach(sortWorkingHours);
-
+  
     try {
       await this.cache.set(KEY_LIST, specialists, TTL_LIST);
-      console.log(
-        `✅ [cache SET] specialist:all (${specialists.length} items)`,
-      );
+      console.log(`✅ [cache SET] specialist:all (${specialists.length} items)`);
     } catch (err: any) {
       console.error('❌ [cache SET FAILED] specialist:all:', err.message);
     }
-
+  
     return specialists;
   }
 

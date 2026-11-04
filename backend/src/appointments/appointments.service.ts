@@ -38,7 +38,7 @@ export class AppointmentsService {
     private readonly dataSource: DataSource,
     @Inject(CACHE_MANAGER)
     private readonly cache: Cache,
-  ) {}
+  ) { }
 
   // ═══════════════════════════════════════
   // Helpers
@@ -369,6 +369,49 @@ export class AppointmentsService {
     return AppointmentResponseDto.fromEntity(appointment);
   }
 
+  async findByIdInternal(id: number): Promise<Appointment | null> {
+    return this.appointmentRepository.findOne({
+      where: { id },
+      relations: {
+        customer: true,
+        specialist: { user: true },
+        service: true,
+      },
+    });
+  }
+
+  async findReviewable(userId: number): Promise<AppointmentResponseDto[]> {
+    const completed = await this.appointmentRepository.find({
+      where: {
+        customer_id: userId,
+        status: AppointmentStatus.Completed,
+      },
+      relations: {
+        specialist: { user: true },
+        service: true,
+      },
+      order: { date: 'DESC', start_time: 'DESC' },
+    });
+
+    if (completed.length === 0) return [];
+
+    const reviewedRaw = await this.appointmentRepository.manager
+      .createQueryBuilder('reviews', 'r')
+      .select('r.appointment_id', 'appointment_id')
+      .where('r.appointment_id IN (:...ids)', {
+        ids: completed.map((a) => a.id),
+      })
+      .getRawMany();
+
+    const reviewedSet = new Set(
+      reviewedRaw.map((r) => Number(r.appointment_id)),
+    );
+
+    return completed
+      .filter((a) => !reviewedSet.has(a.id))
+      .map(AppointmentResponseDto.fromEntity);
+  }
+  
   async cancel(
     id: number,
     user: User,
@@ -565,12 +608,12 @@ export class AppointmentsService {
       total_spent: totalSpent,
       next_appointment: nextAppointment
         ? {
-            id: nextAppointment.id,
-            date: nextAppointment.date,
-            start_time: nextAppointment.start_time,
-            service_name: nextAppointment.service?.name ?? '',
-            specialist_name: `${nextAppointment.specialist?.user?.first_name ?? ''} ${nextAppointment.specialist?.user?.last_name ?? ''}`.trim(),
-          }
+          id: nextAppointment.id,
+          date: nextAppointment.date,
+          start_time: nextAppointment.start_time,
+          service_name: nextAppointment.service?.name ?? '',
+          specialist_name: `${nextAppointment.specialist?.user?.first_name ?? ''} ${nextAppointment.specialist?.user?.last_name ?? ''}`.trim(),
+        }
         : null,
     };
   }
@@ -657,13 +700,13 @@ export class AppointmentsService {
       rating: null,
       next_appointment: nextAppointment
         ? {
-            id: nextAppointment.id,
-            date: nextAppointment.date,
-            start_time: nextAppointment.start_time,
-            service_name: nextAppointment.service?.name ?? '',
-            customer_name: `${nextAppointment.customer?.first_name ?? ''} ${nextAppointment.customer?.last_name ?? ''}`.trim(),
-            customer_phone: nextAppointment.customer?.phone ?? '',
-          }
+          id: nextAppointment.id,
+          date: nextAppointment.date,
+          start_time: nextAppointment.start_time,
+          service_name: nextAppointment.service?.name ?? '',
+          customer_name: `${nextAppointment.customer?.first_name ?? ''} ${nextAppointment.customer?.last_name ?? ''}`.trim(),
+          customer_phone: nextAppointment.customer?.phone ?? '',
+        }
         : null,
     };
   }
