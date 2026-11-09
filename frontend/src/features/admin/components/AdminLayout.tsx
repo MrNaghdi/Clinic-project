@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Menu,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { useDarkMode } from "../../../shared/hook/useDarkMode";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
@@ -26,6 +27,12 @@ const baseLinks = [
     end: false,
   },
   { to: "/admin/reviews", label: "نظرات", icon: Star, end: false },
+  {
+    to: "/admin/messages",
+    label: "تیکت‌ها",
+    icon: MessageSquare,
+    end: false,
+  },
 ];
 
 const superAdminLinks = [

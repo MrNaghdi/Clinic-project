@@ -50,6 +50,9 @@ import AdminAdmins from "./features/admin/pages/AdminAdmins";
 import AdminAppointments from "./features/admin/pages/AdminAppointments";
 import AdminReviews from "./features/admin/pages/AdminReviews";
 import MyReviewsPage from "./features/users/pages/MyReviewsPage";
+import ContactPage from "./features/contact/pages/ContactPage";
+import MyTicketsPage from "./features/contact/pages/MyTicketsPage";
+import AdminMessages from "./features/admin/pages/AdminMessages";
 
 function App() {
   const { pathname } = useLocation();
@@ -152,6 +155,7 @@ function App() {
         >
           <Route index element={<ProfilePage />} />
           <Route path="appointments" element={<AppointmentsPage />} />
+          <Route path="tickets" element={<MyTicketsPage />} />
           <Route path="reviews" element={<MyReviewsPage />} />
           <Route path="history" element={<HistoryPage />} />
           <Route path="settings" element={<SettingsPage />} />
@@ -192,11 +196,23 @@ function App() {
           <Route path="services" element={<AdminServices />} />
           <Route path="appointments" element={<AdminAppointments />} />
           <Route path="reviews" element={<AdminReviews />} />
-
+          <Route path="messages" element={<AdminMessages />} />
           <Route element={<RequireSuperAdmin />}>
             <Route path="admins" element={<AdminAdmins />} />
           </Route>
         </Route>
+
+        {/* ═══════ Contact ═══════ */}
+        <Route
+          path="/contact"
+          element={
+            <>
+              <Navbar />
+              <ContactPage />
+              <Footer />
+            </>
+          }
+        />
       </Routes>
     </>
   );
