@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import { useDarkMode } from "../../../shared/hook/useDarkMode";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
@@ -33,6 +34,12 @@ const baseLinks = [
     icon: MessageSquare,
     end: false,
   },
+  {
+    to: "/admin/articles",
+    label: "مقالات",
+    icon: BookOpen,
+    end: false,
+  },
 ];
 
 const superAdminLinks = [
@@ -45,9 +52,7 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const isSuperAdmin = user?.role === "super_admin";
-  const links = isSuperAdmin
-    ? [...baseLinks, ...superAdminLinks]
-    : baseLinks;
+  const links = isSuperAdmin ? [...baseLinks, ...superAdminLinks] : baseLinks;
 
   const SidebarContent = (
     <>
@@ -113,9 +118,7 @@ export function AdminLayout() {
     >
       <aside
         className={`hidden lg:flex w-64 shrink-0 border-l p-5 flex-col ${
-          darkMode
-            ? "bg-[#0c0a14] border-white/5"
-            : "bg-white border-slate-200"
+          darkMode ? "bg-[#0c0a14] border-white/5" : "bg-white border-slate-200"
         }`}
       >
         {SidebarContent}

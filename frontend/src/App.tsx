@@ -53,6 +53,9 @@ import MyReviewsPage from "./features/users/pages/MyReviewsPage";
 import ContactPage from "./features/contact/pages/ContactPage";
 import MyTicketsPage from "./features/contact/pages/MyTicketsPage";
 import AdminMessages from "./features/admin/pages/AdminMessages";
+import ArticlesPage from "./features/articles/pages/ArticlesPage";
+import ArticleDetailPage from "./features/articles/pages/ArticleDetailPage";
+import AdminArticles from "./features/articles/pages/AdminArticles";
 
 function App() {
   const { pathname } = useLocation();
@@ -197,6 +200,7 @@ function App() {
           <Route path="appointments" element={<AdminAppointments />} />
           <Route path="reviews" element={<AdminReviews />} />
           <Route path="messages" element={<AdminMessages />} />
+          <Route path="articles" element={<AdminArticles />} />
           <Route element={<RequireSuperAdmin />}>
             <Route path="admins" element={<AdminAdmins />} />
           </Route>
@@ -209,6 +213,29 @@ function App() {
             <>
               <Navbar />
               <ContactPage />
+              <Footer />
+            </>
+          }
+        />
+
+        {/* ═══════ Articles ═══════ */}
+        <Route
+          path="/articles"
+          element={
+            <>
+              <Navbar />
+              <ArticlesPage />
+              <Footer />
+            </>
+          }
+        />
+
+        <Route
+          path="/articles/:slug"
+          element={
+            <>
+              <Navbar />
+              <ArticleDetailPage />
               <Footer />
             </>
           }
