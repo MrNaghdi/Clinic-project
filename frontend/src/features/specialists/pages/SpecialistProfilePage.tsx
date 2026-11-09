@@ -23,6 +23,7 @@ import {
 } from "../api/specialists.api";
 import { findAll } from "../../services/api/services.api";
 import type { Service } from "../../services/api/services.api";
+import { AvatarUploader } from "../components/AvatarUploader";
 
 const DAYS = [
   "یکشنبه",
@@ -164,9 +165,6 @@ export default function SpecialistProfilePage() {
   const fullName = `${myProfile.user?.first_name ?? ""} ${
     myProfile.user?.last_name ?? ""
   }`.trim();
-  const imageUrl = myProfile.user?.profile_image
-    ? `http://localhost:3000${myProfile.user.profile_image}`
-    : null;
 
   const isSaving =
     updateProfileMutation.isPending || updateServicesMutation.isPending;
@@ -180,7 +178,6 @@ export default function SpecialistProfilePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl lg:text-3xl font-black text-gray-900 dark:text-white mb-1">
@@ -248,21 +245,16 @@ export default function SpecialistProfilePage() {
         </div>
       </div>
 
-      {/* Profile Info */}
       <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-ink-light p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-6">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={fullName}
-              className="w-24 h-24 rounded-full object-cover border-4 border-gray-100 dark:border-white/10 shrink-0"
+          <div className="shrink-0">
+            <AvatarUploader
+              firstName={myProfile.user?.first_name ?? null}
+              lastName={myProfile.user?.last_name ?? null}
+              profileImage={myProfile.user?.profile_image ?? null}
             />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-brand-500 to-accent-500 text-white flex items-center justify-center text-3xl font-black border-4 border-gray-100 dark:border-white/10 shrink-0">
-              {myProfile.user?.first_name?.[0]}
-              {myProfile.user?.last_name?.[0]}
-            </div>
-          )}
+          </div>
+
           <div className="text-center sm:text-right flex-1">
             <h2 className="text-xl lg:text-2xl font-black text-gray-900 dark:text-white mb-2">
               {fullName}
@@ -323,7 +315,6 @@ export default function SpecialistProfilePage() {
         </div>
       </div>
 
-      {/* Services */}
       <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-ink-light p-6 lg:p-8">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
@@ -421,7 +412,6 @@ export default function SpecialistProfilePage() {
         )}
       </div>
 
-      {/* Working Hours */}
       <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-ink-light p-6 lg:p-8">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
@@ -545,7 +535,9 @@ export default function SpecialistProfilePage() {
                         className="h-9 px-2 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-ink text-sm flex-1 min-w-0"
                         dir="ltr"
                       />
-                      <span className="text-gray-400 text-xs shrink-0">تا</span>
+                      <span className="text-gray-400 text-xs shrink-0">
+                        تا
+                      </span>
                       <input
                         type="time"
                         value={dayHour.end_time}

@@ -11,10 +11,10 @@ import {
   Menu,
   X,
   Home,
-  Clock,
   Award,
 } from "lucide-react";
 import { fetchMe } from "../../users/api/users.api";
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 
 const menuItems = [
   { label: "نمای کلی", to: "/specialist", icon: LayoutDashboard, end: true },
@@ -79,9 +79,10 @@ export default function SpecialistDashboardLayout() {
     );
   }
 
+  const avatarUrl = getImageUrl(user?.profile_image ?? null);
+
   const SidebarContent = (
     <>
-      {/* Logo */}
       <Link
         to="/"
         className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-200 dark:border-white/5 group"
@@ -103,7 +104,6 @@ export default function SpecialistDashboardLayout() {
         </div>
       </Link>
 
-      {/* User Card */}
       {user && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -113,10 +113,10 @@ export default function SpecialistDashboardLayout() {
           <div className="absolute -top-8 -right-8 w-24 h-24 bg-brand-500/20 rounded-full blur-2xl" />
 
           <div className="relative flex items-center gap-3">
-            {user.profile_image ? (
+            {avatarUrl ? (
               <img
-                src={`http://localhost:3000${user.profile_image}`}
-                alt={user.first_name}
+                src={avatarUrl}
+                alt={user.first_name ?? ""}
                 className="w-14 h-14 rounded-full object-cover border-2 border-white dark:border-ink-light shadow-md"
               />
             ) : (
@@ -144,7 +144,6 @@ export default function SpecialistDashboardLayout() {
         </motion.div>
       )}
 
-      {/* Quick Actions */}
       <div className="flex flex-col gap-2 mb-6">
         <NavLink
           to="/"
@@ -156,7 +155,6 @@ export default function SpecialistDashboardLayout() {
         </NavLink>
       </div>
 
-      {/* Menu */}
       <nav className="flex flex-col gap-1 flex-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
@@ -190,7 +188,9 @@ export default function SpecialistDashboardLayout() {
                   <Icon
                     size={18}
                     className={
-                      isActive ? "" : "group-hover:scale-110 transition-transform"
+                      isActive
+                        ? ""
+                        : "group-hover:scale-110 transition-transform"
                     }
                   />
                   {item.label}
@@ -201,7 +201,6 @@ export default function SpecialistDashboardLayout() {
         })}
       </nav>
 
-      {/* Logout */}
       <button
         onClick={handleLogout}
         className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors mt-4 group"

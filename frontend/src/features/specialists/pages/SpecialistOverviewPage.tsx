@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { fetchMe } from "../../users/api/users.api";
 import { getSpecialistStats } from "../../booking/api/booking.api";
 import { AuroraBackground } from "../../../shared/components/effects/AuroraBackground";
+import { getImageUrl } from "../../../shared/utils/getImageUrl";
 import { getJalaliInfo, getRelativeLabel } from "../../booking/utils/date";
 
 function TiltCard({
@@ -148,9 +149,10 @@ export default function SpecialistOverviewPage() {
     queryFn: getSpecialistStats,
   });
 
+  const avatarUrl = getImageUrl(user?.profile_image ?? null);
+
   return (
     <div className="space-y-6">
-      {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -178,10 +180,10 @@ export default function SpecialistOverviewPage() {
             >
               <div className="absolute inset-0 rounded-full bg-white/30 blur-xl" />
               <div className="relative">
-                {user?.profile_image ? (
+                {avatarUrl ? (
                   <img
-                    src={`http://localhost:3000${user.profile_image}`}
-                    alt={user.first_name || ""}
+                    src={avatarUrl}
+                    alt={user?.first_name || ""}
                     className="w-28 h-28 lg:w-32 lg:h-32 rounded-full object-cover border-4 border-white/40 shadow-2xl"
                   />
                 ) : (
