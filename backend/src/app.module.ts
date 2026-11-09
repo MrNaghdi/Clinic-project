@@ -21,6 +21,9 @@ import { AdminModule } from './admin/admin.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { Review } from './reviews/entities/review.entity';
 import { PublicModule } from './public/public.module';
+import { ContactModule } from './contact/contact.module';
+import { ContactMessage } from './contact/entities/contact-message.entity';
+import { ContactReply } from './contact/entities/contact-reply.entity';
 
 @Module({
   imports: [
@@ -37,7 +40,7 @@ import { PublicModule } from './public/public.module';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment, Review],
+        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment, Review, ContactMessage, ContactReply],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -75,6 +78,7 @@ import { PublicModule } from './public/public.module';
     AdminModule,
     ReviewsModule,
     PublicModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],
