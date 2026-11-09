@@ -1,71 +1,70 @@
-import { Appointment, AppointmentStatus } from '../entities/appointment.entity';
+import { Appointment } from "../entities/appointment.entity";
 
 export class AppointmentResponseDto {
   id: number;
-  status: AppointmentStatus;
+  customer_id: number;
+  specialist_id: number;
+  service_id: number;
   date: string;
   start_time: string;
   end_time: string;
+  status: string;
   price: number;
   duration_minutes: number;
   notes: string | null;
   cancel_reason: string | null;
   cancelled_at: Date | null;
-  customer?: {
-    id: number;
-    first_name: string | null;
-    last_name: string | null;
-    phone: string;
-    profile_image: string | null;
-  };
-  specialist?: {
-    id: number;
-    name: string;
-    profile_image: string | null;
-  };
-  service?: {
-    id: number;
-    name: string;
-  };
+  customer: any;
+  specialist: any;
+  service: any;
   created_at: Date;
+  updated_at: Date;
 
-  static fromEntity(entity: Appointment): AppointmentResponseDto {
+  static fromEntity(a: Appointment): AppointmentResponseDto {
     return {
-      id: entity.id,
-      status: entity.status,
-      date: entity.date,
-      start_time: entity.start_time,
-      end_time: entity.end_time,
-      price: entity.price,
-      duration_minutes: entity.duration_minutes,
-      notes: entity.notes,
-      cancel_reason: entity.cancel_reason,
-      cancelled_at: entity.cancelled_at,
-      customer: entity.customer
+      id: a.id,
+      customer_id: a.customer_id,
+      specialist_id: a.specialist_id,
+      service_id: a.service_id,
+      date: a.date,
+      start_time: a.start_time,
+      end_time: a.end_time,
+      status: a.status,
+      price: a.price,
+      duration_minutes: a.duration_minutes,
+      notes: a.notes,
+      cancel_reason: a.cancel_reason,
+      cancelled_at: a.cancelled_at,
+      customer: a.customer
         ? {
-            id: entity.customer.id,
-            first_name: entity.customer.first_name,
-            last_name: entity.customer.last_name,
-            phone: entity.customer.phone,
-            profile_image: entity.customer.profile_image,
+            id: a.customer.id,
+            first_name: a.customer.first_name,
+            last_name: a.customer.last_name,
+            phone: a.customer.phone,
+            profile_image: a.customer.profile_image,
           }
-        : undefined,
-      specialist: entity.specialist
+        : null,
+      specialist: a.specialist
         ? {
-            id: entity.specialist.id,
-            name: `${entity.specialist.user?.first_name ?? ''} ${
-              entity.specialist.user?.last_name ?? ''
-            }`.trim(),
-            profile_image: entity.specialist.user?.profile_image ?? null,
+            id: a.specialist.id,
+            user_id: a.specialist.user_id,
+            user: a.specialist.user
+              ? {
+                  first_name: a.specialist.user.first_name,
+                  last_name: a.specialist.user.last_name,
+                  profile_image: a.specialist.user.profile_image,
+                }
+              : null,
           }
-        : undefined,
-      service: entity.service
+        : null,
+      service: a.service
         ? {
-            id: entity.service.id,
-            name: entity.service.name,
+            id: a.service.id,
+            name: a.service.name,
           }
-        : undefined,
-      created_at: entity.created_at,
+        : null,
+      created_at: a.created_at,
+      updated_at: a.updated_at,
     };
   }
 }

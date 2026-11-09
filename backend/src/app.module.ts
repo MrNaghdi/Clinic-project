@@ -56,10 +56,15 @@ import { PublicModule } from './public/public.module';
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => {
-        const store = new KeyvRedis('redis://localhost:6379');
-        return {
-          stores: [new Keyv({ store })],
-        };
+        const logger = new Logger('Redis');
+    
+        const store = new KeyvRedis('redis://127.0.0.1:6379');
+        store.on('error', (err) => logger.error('KeyvRedis error:', err));
+    
+        const keyv = new Keyv({ store });
+        keyv.on('error', (err) => logger.error('Keyv error:', err));
+    
+        return { stores: [keyv] };
       },
     }),
     AuthModule,

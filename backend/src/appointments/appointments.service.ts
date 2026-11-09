@@ -38,11 +38,8 @@ export class AppointmentsService {
     private readonly dataSource: DataSource,
     @Inject(CACHE_MANAGER)
     private readonly cache: Cache,
-  ) { }
+  ) {}
 
-  // ═══════════════════════════════════════
-  // Helpers
-  // ═══════════════════════════════════════
   private toMinutes(time: string): number {
     const [h, m] = time.split(':').map(Number);
     return h * 60 + m;
@@ -56,9 +53,26 @@ export class AppointmentsService {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  // ═══════════════════════════════════════
-  // CREATE
-  // ═══════════════════════════════════════
+  private sortByStatusAndDate(appointments: Appointment[]): Appointment[] {
+    const statusPriority: Record<string, number> = {
+      [AppointmentStatus.Pending]: 0,
+      [AppointmentStatus.Confirmed]: 1,
+      [AppointmentStatus.Completed]: 2,
+      [AppointmentStatus.Cancelled]: 3,
+      [AppointmentStatus.NoShow]: 4,
+    };
+
+    return [...appointments].sort((a, b) => {
+      const pa = statusPriority[a.status] ?? 99;
+      const pb = statusPriority[b.status] ?? 99;
+      if (pa !== pb) return pa - pb;
+
+      const dateCompare = a.date.localeCompare(b.date);
+      if (dateCompare !== 0) return dateCompare;
+      return a.start_time.localeCompare(b.start_time);
+    });
+  }
+
   async create(
     user: User,
     dto: CreateAppointmentDto,
@@ -165,9 +179,6 @@ export class AppointmentsService {
     return AppointmentResponseDto.fromEntity(full!);
   }
 
-  // ═══════════════════════════════════════
-  // WEEK AVAILABILITY
-  // ═══════════════════════════════════════
   async getWeekAvailability(dto: WeekAvailabilityDto) {
     const specialist = await this.specialistService.findById(dto.specialist_id);
     if (!specialist) throw new NotFoundException('متخصص یافت نشد.');
@@ -290,9 +301,6 @@ export class AppointmentsService {
     );
   }
 
-  // ═══════════════════════════════════════
-  // FIND MY
-  // ═══════════════════════════════════════
   async findMyAppointments(
     user: User,
     status?: AppointmentStatus,
@@ -306,7 +314,9 @@ export class AppointmentsService {
       order: { date: 'DESC', start_time: 'DESC' },
     });
 
-    return appointments.map(AppointmentResponseDto.fromEntity);
+    const sorted = this.sortByStatusAndDate(appointments);
+
+    return sorted.map(AppointmentResponseDto.fromEntity);
   }
 
   async findForSpecialist(
@@ -322,10 +332,12 @@ export class AppointmentsService {
     const appointments = await this.appointmentRepository.find({
       where,
       relations: { customer: true, service: true },
-      order: { date: 'ASC', start_time: 'ASC' },
+      order: { date: 'DESC', start_time: 'DESC' },
     });
 
-    return appointments.map(AppointmentResponseDto.fromEntity);
+    const sorted = this.sortByStatusAndDate(appointments);
+
+    return sorted.map(AppointmentResponseDto.fromEntity);
   }
 
   async findAll(status?: AppointmentStatus): Promise<AppointmentResponseDto[]> {
@@ -411,7 +423,7 @@ export class AppointmentsService {
       .filter((a) => !reviewedSet.has(a.id))
       .map(AppointmentResponseDto.fromEntity);
   }
-  
+
   async cancel(
     id: number,
     user: User,
@@ -430,7 +442,15 @@ export class AppointmentsService {
       const isAdmin =
         user.role === UserRole.Admin || user.role === UserRole.SuperAdmin;
 
-      if (!isCustomer && !isAdmin) {
+      let isSpecialist = false;
+      if (user.role === UserRole.Specialist) {
+        const spec = await manager.findOne(Specialist, {
+          where: { user_id: user.id },
+        });
+        isSpecialist = !!spec && appointment.specialist_id === spec.id;
+      }
+
+      if (!isCustomer && !isSpecialist && !isAdmin) {
         throw new ForbiddenException('شما نمی‌توانید این نوبت را لغو کنید.');
       }
 
@@ -548,9 +568,6 @@ export class AppointmentsService {
     return AppointmentResponseDto.fromEntity(full!);
   }
 
-  // ═══════════════════════════════════════
-  // STATS
-  // ═══════════════════════════════════════
   async getUserStats(user: User) {
     const todayISO = this.toISODate(new Date());
 
@@ -608,19 +625,16 @@ export class AppointmentsService {
       total_spent: totalSpent,
       next_appointment: nextAppointment
         ? {
-          id: nextAppointment.id,
-          date: nextAppointment.date,
-          start_time: nextAppointment.start_time,
-          service_name: nextAppointment.service?.name ?? '',
-          specialist_name: `${nextAppointment.specialist?.user?.first_name ?? ''} ${nextAppointment.specialist?.user?.last_name ?? ''}`.trim(),
-        }
+            id: nextAppointment.id,
+            date: nextAppointment.date,
+            start_time: nextAppointment.start_time,
+            service_name: nextAppointment.service?.name ?? '',
+            specialist_name: `${nextAppointment.specialist?.user?.first_name ?? ''} ${nextAppointment.specialist?.user?.last_name ?? ''}`.trim(),
+          }
         : null,
     };
   }
 
-  // ═══════════════════════════════════════
-  // STATS
-  // ═══════════════════════════════════════
   async getSpecialistStats(user: User) {
     const specialist = await this.specialistService.findByUserId(user.id);
     if (!specialist) {
@@ -700,13 +714,13 @@ export class AppointmentsService {
       rating: null,
       next_appointment: nextAppointment
         ? {
-          id: nextAppointment.id,
-          date: nextAppointment.date,
-          start_time: nextAppointment.start_time,
-          service_name: nextAppointment.service?.name ?? '',
-          customer_name: `${nextAppointment.customer?.first_name ?? ''} ${nextAppointment.customer?.last_name ?? ''}`.trim(),
-          customer_phone: nextAppointment.customer?.phone ?? '',
-        }
+            id: nextAppointment.id,
+            date: nextAppointment.date,
+            start_time: nextAppointment.start_time,
+            service_name: nextAppointment.service?.name ?? '',
+            customer_name: `${nextAppointment.customer?.first_name ?? ''} ${nextAppointment.customer?.last_name ?? ''}`.trim(),
+            customer_phone: nextAppointment.customer?.phone ?? '',
+          }
         : null,
     };
   }
