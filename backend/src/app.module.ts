@@ -24,6 +24,8 @@ import { PublicModule } from './public/public.module';
 import { ContactModule } from './contact/contact.module';
 import { ContactMessage } from './contact/entities/contact-message.entity';
 import { ContactReply } from './contact/entities/contact-reply.entity';
+import { ArticlesModule } from './articles/articles.module';
+import { Article } from './articles/entities/article.entity';
 
 @Module({
   imports: [
@@ -40,7 +42,7 @@ import { ContactReply } from './contact/entities/contact-reply.entity';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment, Review, ContactMessage, ContactReply],
+        entities: [User, Otp, Service, Specialist, WorkingHours, Appointment, Review, ContactMessage, ContactReply, Article],
         synchronize: true,
         timezone: 'Asia/Tehran',
       }),
@@ -79,6 +81,7 @@ import { ContactReply } from './contact/entities/contact-reply.entity';
     ReviewsModule,
     PublicModule,
     ContactModule,
+    ArticlesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
